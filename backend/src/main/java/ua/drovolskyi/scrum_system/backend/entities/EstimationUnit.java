@@ -17,7 +17,7 @@ public class EstimationUnit {
     private String title;
 
     @ManyToOne
-    @JoinColumn(name = "project_id")
+    @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
     @Column(name = "is_deleted", nullable = false)

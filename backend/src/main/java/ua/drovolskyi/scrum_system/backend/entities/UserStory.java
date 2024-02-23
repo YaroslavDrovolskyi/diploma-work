@@ -2,7 +2,9 @@ package ua.drovolskyi.scrum_system.backend.entities;
 
 import jakarta.persistence.*;
 import org.hibernate.type.TrueFalseConverter;
+import ua.drovolskyi.scrum_system.backend.entities.utils.UserStoryInSprint;
 
+import java.time.Instant;
 import java.util.List;
 
 @Entity
@@ -27,8 +29,16 @@ public class UserStory {
     @ManyToOne
     @JoinColumn(name = "estimation_unit_id", nullable = true)
     private EstimationUnit estimationUnit;
+
     @Column(name = "priority", nullable = false)
     private Integer priority;
+
+    @Column(name = "created_timestamp", nullable = false)
+    private Instant createdTimestamp;
+
+    @Column(name = "edited_timestamp", nullable = false)
+    private Instant editedTimestamp;
+
 
     @ManyToOne
     @JoinColumn(name = "status_id", nullable = false)
@@ -37,7 +47,9 @@ public class UserStory {
     @OneToMany(mappedBy = "userStory", fetch = FetchType.LAZY)
     private List<Task> tasks;
 
-    //////////////////////////////////////// NEED to add timestamp of creation and edition
+    @OneToMany(mappedBy = "userStory", fetch = FetchType.LAZY)
+    private List<UserStoryInSprint> participationInSprints;
+
 
     @ManyToOne
     @JoinColumn(name = "epic_id", nullable = false)
@@ -50,6 +62,4 @@ public class UserStory {
     @Column(name = "is_deleted", nullable = false)
     @Convert(converter = TrueFalseConverter.class)
     private Boolean isDeleted;
-
-
 }
