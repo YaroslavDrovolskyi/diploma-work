@@ -24,6 +24,8 @@ public class UserInProject {
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
+    ///////////// NEED to add Scrum role and/or team role
+
     @Column(name = "joined_timestamp", nullable = false)
     private Instant joinedTimestamp;
 

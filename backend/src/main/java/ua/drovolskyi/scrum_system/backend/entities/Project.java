@@ -1,6 +1,10 @@
 package ua.drovolskyi.scrum_system.backend.entities;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.type.TrueFalseConverter;
 import ua.drovolskyi.scrum_system.backend.entities.utils.UserInProject;
 import ua.drovolskyi.scrum_system.backend.entities.utils.UserStoryInSprint;
@@ -10,6 +14,10 @@ import java.util.List;
 
 @Entity
 @Table(name = "projects")
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 public class Project {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

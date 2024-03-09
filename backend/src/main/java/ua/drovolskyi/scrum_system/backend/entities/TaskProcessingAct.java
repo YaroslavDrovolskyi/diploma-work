@@ -1,12 +1,20 @@
 package ua.drovolskyi.scrum_system.backend.entities;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.type.TrueFalseConverter;
 
 import java.time.Instant;
 
 @Entity
 @Table(name = "task_processing_acts")
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 public class TaskProcessingAct {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

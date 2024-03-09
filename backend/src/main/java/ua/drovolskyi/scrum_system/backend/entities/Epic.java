@@ -1,12 +1,20 @@
 package ua.drovolskyi.scrum_system.backend.entities;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.type.TrueFalseConverter;
 
 import java.util.List;
 
 @Entity
 @Table(name = "epics")
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 public class Epic {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

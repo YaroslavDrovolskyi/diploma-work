@@ -1,6 +1,10 @@
 package ua.drovolskyi.scrum_system.backend.entities;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.type.TrueFalseConverter;
 import ua.drovolskyi.scrum_system.backend.entities.utils.UserStoryInSprint;
 
@@ -9,6 +13,10 @@ import java.util.List;
 
 @Entity
 @Table(name = "user_stories")
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 public class UserStory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

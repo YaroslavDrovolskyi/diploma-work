@@ -1,6 +1,10 @@
 package ua.drovolskyi.scrum_system.backend.entities;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.type.TrueFalseConverter;
 
 import java.time.Instant;
@@ -8,6 +12,10 @@ import java.util.List;
 
 @Entity
 @Table(name = "tasks")
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
