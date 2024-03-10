@@ -26,8 +26,12 @@ public class TaskProcessingAct {
     @Column(name = "start_timestamp", nullable = true)
     private Instant startTimestamp;
 
+    @ManyToOne
+    @JoinColumn(name = "status_id", nullable = false)
+    private Status status;
+
     @Column(name = "finish_timestamp", nullable = true)
-    private Instant finishTimestamp;
+    private Instant finishTimestamp; // user can finish its processing act any time, even status is not "DONE"
 
 
 

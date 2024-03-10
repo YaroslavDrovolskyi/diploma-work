@@ -35,8 +35,12 @@ public class Sprint {
     @Column(name = "deadline_timestamp", nullable = false)
     private Instant deadlineTimestamp;
 
-    @Column(name = "finish_timestamp", nullable = false)
+    @Column(name = "finish_timestamp", nullable = true)
     private Instant finishTimestamp;
+
+    @Column(name = "status", nullable = false, length = 33)
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
     @ManyToOne
     @JoinColumn(name = "project_id", nullable = false)
@@ -48,4 +52,8 @@ public class Sprint {
     @Column(name = "is_deleted", nullable = false)
     @Convert(converter = TrueFalseConverter.class)
     private Boolean isDeleted;
+
+    public static enum Status{
+        NOT_STARTED, STARTED, FINISHED_ALL_TASKS_COMPLETED, FINISHED_NOT_ALL_TASKS_COMPLETED
+    }
 }

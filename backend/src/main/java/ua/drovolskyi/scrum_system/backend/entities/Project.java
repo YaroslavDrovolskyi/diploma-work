@@ -53,11 +53,21 @@ public class Project {
     @OneToMany(mappedBy = "project", fetch = FetchType.LAZY)
     private List<Epic> epics;
 
+    @OneToMany(mappedBy = "project", fetch = FetchType.LAZY)
+    private List<Meeting> meetings;
+
+
     @OneToMany(mappedBy = "project", fetch = FetchType.EAGER)
     private List<EstimationUnit> estimationUnits;
 
     @OneToMany(mappedBy = "project", fetch = FetchType.EAGER)
     private List<Status> statuses;
+
+    @OneToMany(mappedBy = "project", fetch = FetchType.EAGER)
+    private List<MeetingType> meetingTypes;
+
+    @OneToMany(mappedBy = "project", fetch = FetchType.EAGER)
+    private List<TeamRole> teamRoles;
 
     @Column(name = "is_deleted", nullable = false)
     @Convert(converter = TrueFalseConverter.class)
