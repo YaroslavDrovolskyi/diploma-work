@@ -7,27 +7,26 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.type.TrueFalseConverter;
 import ua.drovolskyi.scrum_system.backend.entities.Project;
-import ua.drovolskyi.scrum_system.backend.entities.Sprint;
-import ua.drovolskyi.scrum_system.backend.entities.UserStory;
+import ua.drovolskyi.scrum_system.backend.entities.TeamRole;
 
 @Entity
-@Table(name = "user_stories_in_sprints")
+@Table(name = "team_roles_of_users_in_projects")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-public class UserStoryInSprint {
+public class TeamRoleOfUserInProject {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_story_id", nullable = false)
-    private UserStory userStory;
+    @JoinColumn(name = "team_role_id", nullable = false)
+    private TeamRole teamRole;
 
     @ManyToOne
-    @JoinColumn(name = "sprint_id", nullable = false)
-    private Sprint sprint;
+    @JoinColumn(name = "user_in_project_id", nullable = false)
+    private UserInProject userInProject;
 
     @Column(name = "is_deleted", nullable = false)
     @Convert(converter = TrueFalseConverter.class)

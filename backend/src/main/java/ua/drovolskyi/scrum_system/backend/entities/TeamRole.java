@@ -11,12 +11,12 @@ import java.util.Arrays;
 import java.util.List;
 
 @Entity
-@Table(name = "meeting_types")
+@Table(name = "team_roles")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-public class MeetingType {
+public class TeamRole {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -35,7 +35,7 @@ public class MeetingType {
     @Convert(converter = TrueFalseConverter.class)
     private Boolean isDeleted;
 
-    // default (but deletable) meeting types
-    private static List<String> obviousMeetingTypeTitles = Arrays.asList(
-            "Sprint planning", "Daily standup", "Spring review", "Spring retrospective", "Grooming");
+    // default, obvious and not-deletable team roles
+    private static List<String> obviousTeamRoles = Arrays.asList(
+            "Teamlead", "Developer", "Tester");
 }

@@ -10,8 +10,8 @@ import ua.drovolskyi.scrum_system.backend.entities.Status;
 public class BackendApplication {
 
     public static void main(String[] args) throws JsonProcessingException {
-//        SpringApplication.run(BackendApplication.class, args);
-        ObjectMapper objectMapper = new ObjectMapper();
+        SpringApplication.run(BackendApplication.class, args);
+/*        ObjectMapper objectMapper = new ObjectMapper();
 
         Status status = new Status(100L, 1, "32453", "description", null, false);
         System.out.println(status.getTitle());
@@ -19,6 +19,8 @@ public class BackendApplication {
 
         String stringStatus = objectMapper.writeValueAsString(status);
         System.out.println(stringStatus);
+
+ */
     }
 
 }

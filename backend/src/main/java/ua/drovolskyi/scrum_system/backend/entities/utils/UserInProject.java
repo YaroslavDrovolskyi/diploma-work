@@ -1,16 +1,22 @@
 package ua.drovolskyi.scrum_system.backend.entities.utils;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.type.TrueFalseConverter;
-import ua.drovolskyi.scrum_system.backend.entities.Project;
-import ua.drovolskyi.scrum_system.backend.entities.Sprint;
-import ua.drovolskyi.scrum_system.backend.entities.User;
-import ua.drovolskyi.scrum_system.backend.entities.UserStory;
+import ua.drovolskyi.scrum_system.backend.entities.*;
 
 import java.time.Instant;
+import java.util.List;
 
 @Entity
 @Table(name = "users_in_projects")
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 public class UserInProject {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,7 +30,22 @@ public class UserInProject {
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
-    ///////////// NEED to add Scrum role and/or team role
+    // Scrum roles
+    @ElementCollection(targetClass = ScrumRole.class)
+    @CollectionTable
+    @Enumerated(EnumType.STRING) // https://stackoverflow.com/a/61282876
+    private List<ScrumRole> scrumRoles;
+
+    // team roles
+    @OneToMany(mappedBy = "userInProject", fetch = FetchType.LAZY)
+    private List<TeamRoleOfUserInProject> teamRoles;
+
+
+    @Column(name = "planned_capacity", nullable = false)
+    private Integer plannedCapacity;
+
+    @Column(name = "real_capacity", nullable = true)
+    private Integer realCapacity;
 
     @Column(name = "joined_timestamp", nullable = false)
     private Instant joinedTimestamp;
