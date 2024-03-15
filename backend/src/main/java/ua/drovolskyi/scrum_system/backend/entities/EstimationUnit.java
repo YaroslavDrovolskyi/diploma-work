@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.type.TrueFalseConverter;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Entity
 @Table(name = "estimation_units")
 @NoArgsConstructor
@@ -31,4 +34,11 @@ public class EstimationUnit {
     @Column(name = "is_deleted", nullable = false)
     @Convert(converter = TrueFalseConverter.class)
     private Boolean isDeleted;
+
+    // default and deletable estimation units;
+    // "project" field must be changed when create new project
+    @Getter
+    private static final List<EstimationUnit> defaultEstimationUnits = Arrays.asList(
+            new EstimationUnit(null, "spt", "story-point", null, false)
+    );
 }

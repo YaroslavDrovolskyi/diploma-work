@@ -22,8 +22,8 @@ public class Status{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "index", nullable = false)
-    private Integer index; // mean sequence number of this status among other statuses of its project
+    @Column(name = "seq_index", nullable = false) // name of column can't be 'index'
+    private Integer index; // means sequence index of this status among other statuses of its project
 
     @Column(name = "title", nullable = false, length = 20)
 //    @JsonProperty()
@@ -40,8 +40,16 @@ public class Status{
     @Convert(converter = TrueFalseConverter.class)
     private Boolean isDeleted;
 
-    // obvious and not-deletable statuses
-    // to-do must be always first, DONE must be always last
-    private static List<String> obviousStatusTitles = Arrays.asList("TO-DO", "ASSIGNED", "IN PROGRESS", "DONE");
+    // default, obvious and not-deletable statuses
+    // TO-DO must be always first, DONE must be always last
+    // "project" field must be changed when create new project
+    @Getter
+    private static final List<Status> obviousStatuses = Arrays.asList(
+            new Status(null, 0, "CANCELED", "CANCELED description", null, false),
+            new Status(null, 0, "TO-DO", "TO-DO description", null, false),
+            new Status(null, 1, "ASSIGNED", "ASSIGNED description", null, false),
+            new Status(null, 2, "IN PROGRESS", "IN PROGRESS description", null, false),
+            new Status(null, 3, "DONE", "DONE description", null, false)
+    );
 }
 

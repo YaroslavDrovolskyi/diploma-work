@@ -36,6 +36,12 @@ public class TeamRole {
     private Boolean isDeleted;
 
     // default, obvious and not-deletable team roles
-    private static List<String> obviousTeamRoles = Arrays.asList(
-            "Teamlead", "Developer", "Tester");
+    // "project" field must be changed when create new project
+    @Getter
+    private static final List<TeamRole> obviousTeamRoles = Arrays.asList(
+            new TeamRole(null, "Teamlead", "Teamlead description", null, false),
+            new TeamRole(null, "Developer", "Developer description", null, false),
+            new TeamRole(null, "Tester", "Tester description", null, false),
+            new TeamRole(null, "Guest", "Guest description", null, false)
+    );
 }
