@@ -60,7 +60,7 @@ public class Meeting {
     private Boolean isDeleted;
 
 
-    private static enum Status{
+    public static enum Status{
         SCHEDULED, FINISHED, CANCELED
     }
 }

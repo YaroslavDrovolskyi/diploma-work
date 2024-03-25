@@ -38,8 +38,11 @@ public class UserStory {
     @JoinColumn(name = "estimation_unit_id", nullable = true)
     private EstimationUnit estimationUnit;
 
-    @Column(name = "priority", nullable = false)
-    private Integer priority;
+    @Column(name = "importance", nullable = false)
+    private Integer importance;
+
+    @Column(name = "note", nullable = false)
+    private String note;
 
     @Column(name = "created_timestamp", nullable = false)
     private Instant createdTimestamp;
