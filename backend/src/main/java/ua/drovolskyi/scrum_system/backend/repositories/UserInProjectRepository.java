@@ -18,4 +18,9 @@ public interface UserInProjectRepository extends JpaRepository<UserInProject, Lo
     // all of user
     List<UserInProject> findAllByUserIdAndIsDeletedFalse(Long userId);
     List<UserInProject> findAllByUserIdAndIsDeletedFalse(Long userId, Pageable pageable);
+
+    // all of user & project
+    // to be able to answer the question "Has this user ever participated in this project?"
+    List<UserInProject> findAllByUserIdAndProjectIdAndIsDeletedFalse(Long userId, Long projectId);
+    List<UserInProject> findAllByUserIdAndProjectIdAndIsDeletedFalse(Long userId, Long projectId, Pageable pageable);
 }

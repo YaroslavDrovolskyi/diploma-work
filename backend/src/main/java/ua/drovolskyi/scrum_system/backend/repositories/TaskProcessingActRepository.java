@@ -28,4 +28,9 @@ public interface TaskProcessingActRepository extends JpaRepository<TaskProcessin
     // all of user&status
     List<TaskProcessingAct> findAllByUserIdAndStatusIdAndIsDeletedFalse(Long userId, Long statusId);
     List<TaskProcessingAct> findAllByUserIdAndStatusIdAndIsDeletedFalse(Long userId, Long statusId, Pageable pageable);
+
+    // all of task&user
+    // to be able to answer the question "Has this USER ever performed this TASK?. If yes, how many times?"
+    List<TaskProcessingAct> findAllByTaskIdAndUserIdAndIsDeletedFalse(Long taskId, Long userId);
+    List<TaskProcessingAct> findAllByTaskIdAndUserIdAndIsDeletedFalse(Long taskId, Long userId, Pageable pageable);
 }
