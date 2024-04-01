@@ -32,18 +32,20 @@ public class Project {
     @Column(name = "product_goal", nullable = false, length = 500)
     private String productGoal;
 
-    @Column(name = "product_vision", nullable = false, length = 500)
-    private String productVision;
+//    @Column(name = "product_vision", nullable = false, length = 500)
+//    private String productVision;
 
-
+    // fills automatically when project is created
     @Column(name = "start_timestamp", nullable = false)
     private Instant startTimestamp;
 
-    @Column(name = "deadline_timestamp", nullable = false)
-    private Instant deadlineTimestamp;
+    // filled by teamlead
+//    @Column(name = "deadline_timestamp", nullable = true)
+//    private Instant deadlineTimestamp;
 
-    @Column(name = "finish_timestamp", nullable = false)
-    private Instant finishTimestamp;
+    // fills automatically when project is finished
+//    @Column(name = "finish_timestamp", nullable = true)
+//    private Instant finishTimestamp;
 
 
 
@@ -72,7 +74,4 @@ public class Project {
     @Column(name = "is_deleted", nullable = false)
     @Convert(converter = TrueFalseConverter.class)
     private Boolean isDeleted;
-
-
-
 }
