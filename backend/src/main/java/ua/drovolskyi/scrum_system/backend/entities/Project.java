@@ -58,6 +58,9 @@ public class Project {
     @OneToMany(mappedBy = "project", fetch = FetchType.LAZY)
     private List<Meeting> meetings;
 
+    @OneToMany(mappedBy = "project", fetch = FetchType.LAZY)
+    private List<Sprint> sprints;
+
 
     @OneToMany(mappedBy = "project", fetch = FetchType.EAGER)
     private List<EstimationUnit> estimationUnits;

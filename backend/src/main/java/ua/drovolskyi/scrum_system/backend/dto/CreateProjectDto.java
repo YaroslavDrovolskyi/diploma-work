@@ -13,13 +13,15 @@ import java.time.Instant;
 @AllArgsConstructor
 @Getter
 public class CreateProjectDto {
-    @NotBlank(message = "name can't be blank")
-    @Size(max = 50, message = "name must have max length equal to 50")
+    @NotBlank(message = "Name can't be blank")
+    @Size(max = 50, message = "Name must have max length equal to 50")
     private String name;
 
-    @Size(max = 1000, message = "description must have max length equal to 1000")
+    @NotBlank(message = "Description can't be blank")
+    @Size(max = 1000, message = "Description must have max length equal to 1000")
     private String description;
 
-    @Size(max = 500, message = "product goal must have max length equal to 500")
+    @NotBlank(message = "Product goal can't be blank")
+    @Size(max = 500, message = "Product goal must have max length equal to 500")
     private String productGoal;
 }

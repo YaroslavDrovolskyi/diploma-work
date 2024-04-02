@@ -39,10 +39,10 @@ public class MeetingType {
     // "project" field must be changed when create new project
     @Getter
     private static final List<MeetingType> defaultMeetingTypes = Arrays.asList(
-            new MeetingType(null, "Spring planning", "Spring planning description", null, false),
+            new MeetingType(null, "Sprint planning", "Spring planning description", null, false),
             new MeetingType(null, "Daily standup", "Daily standup description", null, false),
             new MeetingType(null, "Sprint review", "Sprint review description", null, false),
-            new MeetingType(null, "Spring retrospective", "Spring retrospective description", null, false),
+            new MeetingType(null, "Sprint retrospective", "Spring retrospective description", null, false),
             new MeetingType(null, "Grooming", "Grooming description", null, false)
     );
 }
