@@ -1,0 +1,17 @@
+
+Generate me a a short formal description of {{Product}}.
+
+Make sure that generated response is 1-2 sentences, but not a list
+
+
+======================================================= EXAMPLES
+1) {Food delivery app}
+A mobile application that connects users with local restaurants, enabling them to browse menus, order food delivery, and track their orders in real-time.
+
+2) {Instant messaging app}
+An instant messaging app is a real-time communication platform that enables users to exchange text messages, fostering connections and facilitating collaboration.
+
+3) {Image editing app}
+An image editing app is a software application that allows users to manipulate digital images, enhancing their visual appearance and applying creative effects.
+
+

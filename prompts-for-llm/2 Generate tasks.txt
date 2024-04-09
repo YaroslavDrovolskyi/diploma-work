@@ -1,0 +1,272 @@
+======================== TEMPLATE:
+task_count:
+product:
+product_vision:
+technologies:
+user_story_name:
+user_story_description:
+user_story_acpt_criteria:
+tasks:
+
+
+python -u "d:\Study\Наукова конференція\main.py"
+
+=========================== EXAMPLES
+1)
+task_count: 100
+product: Food delivery app
+product_vision: A mobile application that connects users with local restaurants, enabling them to browse menus, order food delivery, and track their orders in real-time
+technologies: Kotlin frontend, Java backend, MySQL DBMS, AWS, Stripe secure payment gateway
+user_story_name: As a user, I want to browse the menu of a selected restaurant, including descriptions, prices, and photos of the dishes so that I can make informed decisions about my order
+user_story_description: This user story addresses in-app restaurant menu browsing. Users should be able to view detailed information about menu items before placing an order.
+user_story_acpt_criteria:
+tasks: []
+
+[
+  {
+    "task": "Implement database schema for menu items",
+    "description": "Create a database schema that stores menu items, including details like name, description, price, and image."
+  },
+  {
+    "task": "Create REST API for fetching menu items",
+    "description": "Create a RESTful API endpoint that retrieves menu items from the database based on restaurant ID."
+  },
+  {
+    "task": "Design menu item display layout",
+    "description": "Design the visual layout for displaying menu items in the app, including text, images, and interactive elements."
+  },
+  {
+    "task": "Implement menu item display component",
+    "description": "Develop a Kotlin UI component that displays menu items according to the designed layout."
+  },
+  {
+    "task": "Configure AWS infrastructure for image storage",
+    "description": "Configure AWS S3 or another AWS service to store and serve menu item images."
+  },
+  {
+    "task": "Integrate image storage with menu item API",
+    "description": "Update the REST API to fetch and return image URLs for menu items."
+  }
+]
+
+
+
+2)
+task_count: 100
+product: Food delivery app
+product_vision: A mobile application that connects users with local restaurants, enabling them to browse menus, order food delivery, and track their orders in real-time
+technologies: Kotlin frontend, Java backend, MySQL DBMS, AWS, Stripe secure payment gateway
+user_story_name: As a user, I want to track the real-time location of my food delivery on a map so that I can see its estimated arrival time
+user_story_description: This user story incorporates order tracking functionality. Users should be able to visualize their order's location and estimated delivery time on a map.
+user_story_acpt_criteria:
+tasks: []
+
+[
+  {
+    "task": "Create a real-time order tracking map",
+    "description": "Implement a map widget that displays the real-time location of the delivery person and the estimated arrival time of the order."
+  },
+  {
+    "task": "Integrate GPS tracking into the delivery app",
+    "description": "Establish a mechanism for the delivery person's mobile device to transmit their GPS coordinates to the backend server."
+  },
+  {
+    "task": "Display estimated arrival time on the map",
+    "description": "Calculate the estimated arrival time based on the delivery person's current location, the destination address, and traffic conditions."
+  },
+  {
+    "task": "Update the map and ETA in real-time",
+    "description": "Continuously update the map and ETA as the delivery person moves towards the destination."
+  },
+  {
+    "task": "Handle GPS location errors",
+    "description": "Implement error handling mechanisms to gracefully handle cases where GPS data is unavailable or unreliable."
+  },
+  {
+    "task": "Design the UI for the order tracking map",
+    "description": "Create user-friendly and aesthetically pleasing UI for the order tracking map."
+  },
+  {
+    "task": "Implement the map zooming and panning features",
+    "description": "Allow users to zoom in and pan the map to view the delivery location and its surroundings."
+  },
+  {
+    "task": "Add a legend to the map",
+    "description": "Create a legend that explains the symbols and colors used on the map."
+  },
+  {
+    "task": "Optimize the map loading speed",
+    "description": "Implement techniques to optimize the loading time of the map and minimize data usage."
+  },
+  {
+    "task": "Test the order tracking map functionality",
+    "description": "Conduct thorough testing to ensure that the order tracking map functions as expected in various scenarios."
+  }
+]
+
+3)
+task_count: 10
+product: Food delivery app
+product_vision: A mobile application that connects users with local restaurants, enabling them to browse menus, order food delivery, and track their orders in real-time
+technologies: Kotlin frontend, Java backend, MySQL DBMS, AWS, Stripe secure payment gateway
+user_story_name: As a user, I want to track the real-time location of my food delivery on a map so that I can see its estimated arrival time
+user_story_description: This user story incorporates order tracking functionality. Users should be able to visualize their order's location and estimated delivery time on a map.
+user_story_acpt_criteria:
+tasks: [
+[
+  {
+    "task": "Create a real-time order tracking map",
+    "description": "Implement a map widget that displays the real-time location of the delivery person and the estimated arrival time of the order."
+  },
+  {
+    "task": "Integrate GPS tracking into the delivery app",
+    "description": "Establish a mechanism for the delivery person's mobile device to transmit their GPS coordinates to the backend server."
+  },
+  {
+    "task": "Display estimated arrival time on the map",
+    "description": "Calculate the estimated arrival time based on the delivery person's current location, the destination address, and traffic conditions."
+  },
+  {
+    "task": "Update the map and ETA in real-time",
+    "description": "Continuously update the map and ETA as the delivery person moves towards the destination."
+  },
+  {
+    "task": "Handle GPS location errors",
+    "description": "Implement error handling mechanisms to gracefully handle cases where GPS data is unavailable or unreliable."
+  },
+  {
+    "task": "Design the UI for the order tracking map",
+    "description": "Create user-friendly and aesthetically pleasing UI for the order tracking map."
+  },
+  {
+    "task": "Implement the map zooming and panning features",
+    "description": "Allow users to zoom in and pan the map to view the delivery location and its surroundings."
+  },
+  {
+    "task": "Add a legend to the map",
+    "description": "Create a legend that explains the symbols and colors used on the map."
+  },
+  {
+    "task": "Optimize the map loading speed",
+    "description": "Implement techniques to optimize the loading time of the map and minimize data usage."
+  },
+  {
+    "task": "Test the order tracking map functionality",
+    "description": "Conduct thorough testing to ensure that the order tracking map functions as expected in various scenarios."
+  }
+]
+
+
+[
+  {
+    "task": "Implement real-time location sharing for delivery person",
+    "description": "Develop a mechanism for the delivery person's app to securely share their real-time location with the backend server."
+  },
+  {
+    "task": "Establish a persistent connection between delivery app and backend",
+    "description": "Set up a mechanism for the delivery person's app to maintain a persistent connection with the backend server for real-time data exchange."
+  },
+  {
+    "task": "Handle network connectivity issues in the delivery app",
+    "description": "Implement mechanisms to gracefully handle network connectivity issues and ensure data integrity during reconnection."
+  },
+  {
+    "task": "Integrate map library into the user app",
+    "description": "Incorporate a suitable map library into the user app to visualize the delivery location and estimated arrival time."
+  },
+  {
+    "task": "Implement a mechanism to update map data in the user app",
+    "description": "Develop a mechanism to receive real-time location updates from the backend server and update the map data accordingly."
+  }
+]
+
+
+
+4)
+task_count: 10
+product: Instant messaging app
+product_vision: An instant messaging app is a real-time communication platform that enables users to exchange text messages, fostering connections and facilitating collaboration.
+technologies: Qt C++ frontend, Java backend, MySQL DBMS, WebSocket communication protocol
+user_story_name: As a user, I want to initiate a one-on-one chat with another user so that I can have a private conversation
+user_story_description: This user story establishes core messaging functionality. Users should be able to start private chats with each other.
+user_story_acpt_criteria:
+tasks: []
+
+[
+  {
+    "task": "Design and implement UI for chat initiation",
+    "description": "Create an intuitive and user-friendly interface that allows users to easily initiate one-on-one chats."
+  },
+  {
+    "task": "Implement WebSocket event handling for chat initiation",
+    "description": "Establish a WebSocket connection and handle events related to chat initiation requests, ensuring real-time communication."
+  },
+  {
+    "task": "Create a chat session object and add it to the user's chat list",
+    "description": "Create an object representing the chat session and add it to the user's list of active chats."
+  },
+  {
+    "task": "Integrate user authentication and authorization for chat initiation",
+    "description": "Ensure that only authorized users can initiate chats, implementing necessary security measures."
+  },
+  {
+    "task": "Design and implement message sending and receiving functionality",
+    "description": "Create a mechanism for users to send and receive messages within the chat, including text formatting and message status updates."
+  },
+  {
+    "task": "Handle chat session management",
+    "description": "Implement logic for joining, leaving, and closing chat sessions, ensuring proper session handling."
+  },
+  {
+    "task": "Implement chat history storage and retrieval",
+    "description": "Develop a mechanism for storing and retrieving chat history, allowing users to access previous conversations."
+  },
+  {
+    "task": "Perform unit testing for chat initiation and messaging functionality",
+    "description": "Write comprehensive unit tests to validate the functionality of chat initiation, message sending, and receiving."
+  },
+  {
+    "task": "Integrate with backend services for user and message data management",
+    "description": "Connect the frontend to backend services for managing user information and message data, ensuring data persistence and integrity."
+  },
+  {
+    "task": "Implement UI responsiveness for chat initiation",
+    "description": "Ensure that the chat initiation interface adapts seamlessly to different screen sizes and device orientations, providing a consistent user experience."
+  }
+]
+
+
+
+5)
+task_count: 10
+product: Image editing app
+product_vision: An image desktop editing app is a software application that allows users to manipulate digital images, enhancing their visual appearance and applying creative effects
+technologies: 
+user_story_name: As a creative user, I want to apply filters and effects to my photos so that I can add artistic styles and visual flair
+user_story_description: This user story incorporates artistic manipulation. Users should be able to apply pre-defined filters and effects to create unique visual styles.
+user_story_acpt_criteria:
+tasks: []
+
+[
+  {
+    "task": "Implement basic color filtering (e.g. sepia, grayscale)",
+    "description": "Add support for basic color filters that apply transformations to pixel color values (e.g. sepia, grayscale)."
+  },
+  {
+    "task": "Integrate OpenCV library for advanced filters",
+    "description": "Integrate OpenCV library and utilize its image processing capabilities for implementing advanced filters (e.g. edge detection, blur effects)."
+  },
+  {
+    "task": "Create filter selection and application GUI",
+    "description": "Develop a user-friendly graphical user interface (GUI) for selecting and applying filters, providing a seamless user experience."
+  },
+  {
+    "task": "Handle filter parameter adjustments",
+    "description": "Allow users to adjust filter parameters (e.g. intensity, radius) to customize the effects and achieve desired visual outcomes."
+  },
+  {
+    "task": "Implement real-time filter preview",
+    "description": "Enable real-time preview of filter effects, allowing users to interactively experiment with different filters and make informed choices."
+  }
+]
+
