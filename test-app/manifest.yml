@@ -1,0 +1,21 @@
+modules:
+  jira:projectPage:
+    - key: test-app-hello-world-project-page
+      resource: main
+      resolver:
+        function: resolver
+      render: native
+      title: Some Forge app
+  function:
+    - key: resolver
+      handler: index.handler
+resources:
+  - key: main
+    path: src/frontend/index.jsx
+app:
+  id: ari:cloud:ecosystem::app/e0e3d3be-6bd7-408c-8110-d1d56ca617b4
+permissions:
+  scopes:
+    - read:jira-user
+    - read:board-scope:jira-software
+    - read:project:jira
