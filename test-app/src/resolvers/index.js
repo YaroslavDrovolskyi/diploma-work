@@ -1,8 +1,5 @@
 import Resolver from '@forge/resolver';
 
-export function getAllBoards() {
-}
-
 
 const resolver = new Resolver();
 
