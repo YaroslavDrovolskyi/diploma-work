@@ -20,3 +20,5 @@ permissions:
     - read:board-scope:jira-software
     - read:project:jira
     - read:issue-details:jira
+    - read:sprint:jira-software
+    - read:jql:jira

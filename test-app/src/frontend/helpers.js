@@ -16,9 +16,7 @@ export const getMyself = async() => {
 }
 
 export const getBoard = async(boardId) => {
-  const path = `/rest/agile/1.0/board/${boardId}`;
-  console.log("Path: " + path);
-  const response = await requestJira('/rest/agile/1.0/board/1');
+  const response = await requestJira(`/rest/agile/1.0/board/${boardId}`);
 
   console.log(`Response (getBoard()): ${response.status} ${response.statusText}`);
   return await response.json();
@@ -27,9 +25,31 @@ export const getBoard = async(boardId) => {
 export const getIssuesForBacklog = async(boardId) => {
   const response = await requestJira(`/rest/agile/1.0/board/${boardId}/backlog`);
 
-  console.log(`Response (getBoard()): ${response.status} ${response.statusText}`);
+  console.log(`Response (getIssuesForBacklog()): ${response.status} ${response.statusText}`);
   return await response.json();
 }
+
+export const getIssuesForBoard = async(boardId) => {
+  const response = await requestJira(`/rest/agile/1.0/board/${boardId}/issue`);
+
+  console.log(`Response (getIssuesForBoard()): ${response.status} ${response.statusText}`);
+  return await response.json();
+}
+
+export const getAllSprints = async(boardId) => {
+  const response = await requestJira(`/rest/agile/1.0/board/${boardId}/sprint`);
+
+  console.log(`Response (getAllSprints()): ${response.status} ${response.statusText}`);
+  return await response.json();
+}
+
+export const getBoardIssuesForSprint = async(boardId, sprintId) => {
+  const response = await requestJira(`/rest/agile/1.0/board/${boardId}/sprint/${sprintId}/issue`);
+
+  console.log(`Response (getBoardIssuesForSprint()): ${response.status} ${response.statusText}`);
+  return await response.json();
+}
+  //
 
 
 //
