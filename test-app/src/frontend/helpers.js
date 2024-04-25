@@ -49,6 +49,13 @@ export const getBoardIssuesForSprint = async(boardId, sprintId) => {
   console.log(`Response (getBoardIssuesForSprint()): ${response.status} ${response.statusText}`);
   return await response.json();
 }
+
+export const getIssue = async(issueIdOrKey) => {
+  const response = await requestJira(`/rest/agile/1.0/issue/${issueIdOrKey}`);
+
+  console.log(`Response (getIssue()): ${response.status} ${response.statusText}`);
+  return await response.json();
+}
   //
 
 

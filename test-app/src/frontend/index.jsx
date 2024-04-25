@@ -7,7 +7,7 @@ import {
   getAllBoards,
   getAllSprints,
   getBoard,
-  getBoardIssuesForSprint,
+  getBoardIssuesForSprint, getIssue,
   getIssuesForBacklog,
   getIssuesForBoard,
   getMyself
@@ -26,6 +26,9 @@ const App = () => {
   const [issuesForBoard, setIssuesForBoard] = React.useState(null);
   const [allSprints, setAllSprints] = React.useState(null);
   const [boardIssuesForSprint, setBoardIssuesForSprint] = React.useState(null);
+  const [userStory, setUserStory] = React.useState(null);
+  const [task, setTask] = React.useState(null);
+  const [subtask, setSubtask] = React.useState(null);
 
   const loadData = async () => {
     setAllBoards(await getAllBoards());
@@ -35,6 +38,9 @@ const App = () => {
     setIssuesForBoard(await getIssuesForBoard(1));
     setAllSprints(await getAllSprints(1));
     setBoardIssuesForSprint(await getBoardIssuesForSprint(1,10));
+    setUserStory(await getIssue("TP-13"));
+    setTask(await getIssue("TP-3"));
+    setSubtask(await getIssue("TP-17"));
   };
 
   React.useEffect(() => {
@@ -45,7 +51,8 @@ const App = () => {
 
    let allDataReceived = (allBoards != null) && (userInfo != null) &&
      (board != null) && (issuesForBacklog != null) && (issuesForBoard != null) &&
-     (allSprints != null) && (boardIssuesForSprint != null);
+     (allSprints != null) && (boardIssuesForSprint != null) &&
+     (userStory != null) && (task != null) && (subtask != null);
 
   // conditional rendering of page
   if(!allDataReceived){
@@ -65,25 +72,14 @@ const App = () => {
         User info: {JSON.stringify(userInfo)}
       </Text>
 
-      <Text>
-        All boards: {JSON.stringify(allBoards)}
-      </Text>
+      <Strong>User Story: </Strong>
+      <Text>{JSON.stringify(userStory)}</Text>
 
-      <Text>
-        Board: {JSON.stringify(board)}
-      </Text>
+      <Strong>Task: </Strong>
+      <Text>{JSON.stringify(task)}</Text>
 
-      <Text>
-        All sprints: {JSON.stringify(allSprints)}
-      </Text>
-
-      <Text>
-        Board issues for sprint: {JSON.stringify(boardIssuesForSprint)}
-      </Text>
-
-
-
-
+      <Strong>Subtask: </Strong>
+      <Text>{JSON.stringify(subtask)}</Text>
 
     </>
   );
@@ -125,5 +121,22 @@ const DisplayIssues = ({text, issues}) => {
 
 <DisplayIssues text={"Issues for BACKLOG"} issues={issuesForBacklog}/>
 <DisplayIssues text={"Issues for BOARD"} issues={issuesForBoard}/>
+
+<Text>
+  All boards: {JSON.stringify(allBoards)}
+</Text>
+
+<Text>
+  Board: {JSON.stringify(board)}
+</Text>
+
+<Text>
+  All sprints: {JSON.stringify(allSprints)}
+</Text>
+
+<Text>
+  Board issues for sprint: {JSON.stringify(boardIssuesForSprint)}
+</Text>
+
 
  */
