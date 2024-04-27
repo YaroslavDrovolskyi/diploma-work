@@ -1,20 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import ForgeReconciler, {Box, Heading, Stack, Strong, Text, useProductContext} from '@forge/react';
-import api, { route } from '@forge/api';
+import { route } from '@forge/api';
 // import {getAllBoards, getMyself} from '../index';
-import {requestJira} from "@forge/bridge";
+import {invoke, requestJira} from "@forge/bridge";
 import {
+  convertJiraWikiMarkupToPlainText,
   getAllBoards,
   getAllSprints,
   getBoard,
-  getBoardIssuesForSprint, getIssue,
+  getBoardIssuesForSprint, getGeminiAnswer, getIssue, getIssuePlainText,
   getIssuesForBacklog,
   getIssuesForBoard,
-  getMyself
+  getMyself, replaceMarkdownWhitespaces
 } from "./helpers";
 
 
-
+const j2m = require('jira2md');
+const { markdownToTxt } = require('markdown-to-txt');
 
 
 const App = () => {
@@ -29,6 +31,8 @@ const App = () => {
   const [userStory, setUserStory] = React.useState(null);
   const [task, setTask] = React.useState(null);
   const [subtask, setSubtask] = React.useState(null);
+  const [issuePlainText, setIssuePlainText] = React.useState(null);
+  const [geminiAnswer, setGeminiAnswer] = React.useState(null);
 
   const loadData = async () => {
     setAllBoards(await getAllBoards());
@@ -38,9 +42,14 @@ const App = () => {
     setIssuesForBoard(await getIssuesForBoard(1));
     setAllSprints(await getAllSprints(1));
     setBoardIssuesForSprint(await getBoardIssuesForSprint(1,10));
-    setUserStory(await getIssue("TP-13"));
+    setUserStory(await getIssue("TP-14"));
     setTask(await getIssue("TP-3"));
     setSubtask(await getIssue("TP-17"));
+    setIssuePlainText(await getIssuePlainText(10013));
+
+    let geminiResult = await invoke('getGeminiAnswer1', { a: 'my-invoke-variable' });
+    setGeminiAnswer(geminiResult);
+    console.log(geminiResult);
   };
 
   React.useEffect(() => {
@@ -52,7 +61,9 @@ const App = () => {
    let allDataReceived = (allBoards != null) && (userInfo != null) &&
      (board != null) && (issuesForBacklog != null) && (issuesForBoard != null) &&
      (allSprints != null) && (boardIssuesForSprint != null) &&
-     (userStory != null) && (task != null) && (subtask != null);
+     (userStory != null) && (task != null) && (subtask != null) &&
+     (issuePlainText != null) &&
+     (geminiAnswer != null);
 
   // conditional rendering of page
   if(!allDataReceived){
@@ -66,20 +77,14 @@ const App = () => {
     );
   }
 
+  const wikiText = issuePlainText.value.description;
+  console.log(wikiText);
+  console.log(convertJiraWikiMarkupToPlainText(wikiText));
+
   return (
     <>
-      <Text>
-        User info: {JSON.stringify(userInfo)}
-      </Text>
+     <Text>{JSON.stringify(geminiAnswer)}</Text>
 
-      <Strong>User Story: </Strong>
-      <Text>{JSON.stringify(userStory)}</Text>
-
-      <Strong>Task: </Strong>
-      <Text>{JSON.stringify(task)}</Text>
-
-      <Strong>Subtask: </Strong>
-      <Text>{JSON.stringify(subtask)}</Text>
 
     </>
   );
@@ -137,6 +142,26 @@ const DisplayIssues = ({text, issues}) => {
 <Text>
   Board issues for sprint: {JSON.stringify(boardIssuesForSprint)}
 </Text>
+
+
+
+
+ <Text>
+        User info: {JSON.stringify(userInfo)}
+      </Text>
+
+      <Strong>User Story: </Strong>
+      <Text>{JSON.stringify(userStory)}</Text>
+
+      <Strong>Task: </Strong>
+      <Text>{JSON.stringify(task)}</Text>
+
+      <Strong>Subtask: </Strong>
+      <Text>{JSON.stringify(subtask)}</Text>
+
+      <Strong>Issue with plain fields: </Strong>
+      <Text>{JSON.stringify(issuePlainText)}</Text>
+      <Text>{issuePlainText.value.description}</Text>
 
 
  */
