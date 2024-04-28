@@ -11,44 +11,42 @@ const { GoogleGenerativeAI } = require("@google/generative-ai"); // import
 const genAI = new GoogleGenerativeAI('AIzaSyCOg-SHfvbdK_phTbeoW3faeeO-N9QPIgw');
 
 
-resolver.define('getGeminiAnswer1', ({payload, context}) => {
-  const result = fetch(
-    "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent",
-    {
+resolver.define('getGeminiAnswer1', async ({payload, context}) => {
+  const requestBody = {
+    contents: [
+      {
+        role: 'user',
+        parts: [
+          {
+            text: "Generate me 10 user stories (according to Scrum framework) for Instant messaging app"
+          }
+        ]
+      }
+    ]
+  }
+
+
+  const response = await fetch(
+    "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent", {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-goog-api-key': 'AIzaSyCOg-SHfvbdK_phTbeoW3faeeO-N9QPIgw'
       },
-      body: {
-        contents: [
-          {
-            role: 'user',
-            parts: [
-              {
-                text: "Generate me 10 user stories (according to Scrum framework) for Instant messaging app"
-              }
-            ]
-          }
-        ]
-      }
+      body: JSON.stringify(requestBody)
     }
   );
 //  const status = result.status;
 
-  return result;//.text;
+  return await response.json();//.text;
   // console.log(text);
 });
 
 
-resolver.define('getGeminiAnswer2', ({payload, context}) => {
-  console.log(payload.a);
+resolver.define('fetchInfo', async ({payload, context}) => {
+  const response = await fetch("https://jsonplaceholder.typicode.com/todos/1");
 
-  const result = api.fetch("https://jsonplaceholder.typicode.com/todos/1");
-//  const status = result.status;
-
-  return result;//.text;
-  // console.log(text);
+  return await response.json();
 });
 
 

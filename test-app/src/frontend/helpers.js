@@ -112,6 +112,37 @@ export const convertJiraWikiMarkupToPlainText = (wikiText) => {
 }
 
 
+export const getGeminiResponse = async() => {
+  const requestBody = {
+    contents: [
+      {
+        role: 'user',
+        parts: [
+          {
+            text: "Generate me 10 user stories (according to Scrum framework) for Instant messaging app"
+          }
+        ]
+      }
+    ]
+  }
+
+
+  const response = await fetch(
+    "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': 'AIzaSyCOg-SHfvbdK_phTbeoW3faeeO-N9QPIgw'
+      },
+      body: JSON.stringify(requestBody)
+    }
+  );
+//  const status = result.status;
+
+  return await response.json();//.text;
+}
+
+
 
 /*
 const { GoogleGenerativeAI } = require("@google/generative-ai"); // import

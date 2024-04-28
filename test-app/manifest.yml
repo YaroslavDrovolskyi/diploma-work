@@ -31,3 +31,5 @@ permissions:
         - 'generativelanguage.googleapis.com'
         - 'example.net'
         - 'jsonplaceholder.typicode.com'
+      client:
+        - 'generativelanguage.googleapis.com'
