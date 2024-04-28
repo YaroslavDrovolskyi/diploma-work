@@ -1,0 +1,39 @@
+modules:
+  jira:projectPage:
+    - key: jira-ai-app-hello-world-project-page
+      resource: main
+      resolver:
+        function: resolver
+      title: jira-ai-app
+      pages:
+        - title: Home
+          route: '/'
+        - title: Page 1
+          route: '/page-1'
+        - title: Page 2
+          route: '/page-2'
+        - title: Page 3
+          route: '/page-3'
+  function:
+    - key: resolver
+      handler: index.handler
+resources:
+  - key: main
+    path: static/hello-world/build
+app:
+  id: ari:cloud:ecosystem::app/894db432-e0fd-4d3c-9f16-38ae250ecab3
+permissions:
+  scopes:
+    - read:jira-user
+    - read:board-scope:jira-software
+    - read:project:jira
+    - read:issue-details:jira
+    - read:sprint:jira-software
+    - read:jql:jira
+    - read:issue:jira-software
+    - read:jira-work
+    - read:jira-expressions:jira
+  external:
+    fetch:
+      client:
+        - 'generativelanguage.googleapis.com'
