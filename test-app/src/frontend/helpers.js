@@ -144,14 +144,14 @@ export const getGeminiResponse = async() => {
 
 
 
-/*
+
 const { GoogleGenerativeAI } = require("@google/generative-ai"); // import
 
 // initialize Generative Model
 //const genAI = new GoogleGenerativeAI(process.env.REACT_APP_API_KEY);
 const genAI = new GoogleGenerativeAI('AIzaSyCOg-SHfvbdK_phTbeoW3faeeO-N9QPIgw');
 
-export const getGeminiAnswer = async() => {
+export const getGeminiAnswerJs = async() => {
   // For text-only input, use the gemini-pro model
   const model = genAI.getGenerativeModel({ model: "gemini-pro"});
 
@@ -159,14 +159,11 @@ export const getGeminiAnswer = async() => {
 
   const result = await model.generateContent(prompt);
   const response = await result.response;
-  const text = response.text();
-
-  return text;
-  // console.log(text);
+  return response.text();
 }
 
 
- */
+
   //
 
 

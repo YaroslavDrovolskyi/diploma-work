@@ -8,7 +8,7 @@ import {
   getAllBoards,
   getAllSprints,
   getBoard,
-  getBoardIssuesForSprint, getGeminiAnswer, getGeminiResponse, getIssue, getIssuePlainText,
+  getBoardIssuesForSprint, getGeminiAnswer, getGeminiAnswerJs, getGeminiResponse, getIssue, getIssuePlainText,
   getIssuesForBacklog,
   getIssuesForBoard,
   getMyself, replaceMarkdownWhitespaces
@@ -34,6 +34,7 @@ const App = () => {
   const [issuePlainText, setIssuePlainText] = React.useState(null);
   const [geminiAnswer, setGeminiAnswer] = React.useState(null);
   const [info, setInfo] = React.useState(null);
+  const [testAnswer, setTestAnswer] = React.useState(null);
 
   const loadData = async () => {
     setAllBoards(await getAllBoards());
@@ -53,6 +54,8 @@ const App = () => {
     console.log(geminiAnswer);
 
     setInfo(await invoke('fetchInfo', {a: 'some-value'}));
+
+    setTestAnswer(await getGeminiAnswerJs());
   };
 
   React.useEffect(() => {
@@ -67,7 +70,7 @@ const App = () => {
      (userStory != null) && (task != null) && (subtask != null) &&
      (issuePlainText != null) &&
      (geminiAnswer != null) &&
-     (info != null);
+     (info != null) && (testAnswer != null);
 
   // conditional rendering of page
   if(!allDataReceived){
@@ -86,6 +89,7 @@ const App = () => {
   console.log(convertJiraWikiMarkupToPlainText(wikiText));
 
   console.log(JSON.stringify(info));
+  console.log(JSON.stringify(testAnswer));
 
   return (
     <>
