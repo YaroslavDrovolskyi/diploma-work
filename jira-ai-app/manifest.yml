@@ -8,8 +8,8 @@ modules:
       pages:
         - title: Home
           route: '/'
-        - title: Page 1
-          route: '/page-1'
+        - title: Generate subtasks
+          route: '/generate-subtasks'
         - title: Page 2
           route: '/page-2'
         - title: Page 3

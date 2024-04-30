@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import {invoke, view} from '@forge/bridge';
-import {getGeminiAnswerJs, getGeminiResponse, getIssue} from "./helpers";
+import {getGeminiAnswerJs, getGeminiResponse, getIssue} from "./requests/helpers";
 import {Route, Router, Routes} from "react-router";
 import Home from "./pages/Home";
-import Page1 from "./pages/Page1";
+import GenerateSubtasksPage from "./pages/GenerateSubtasksPage";
 import Page2 from "./pages/Page2";
 import Page3 from "./pages/Page3";
+
+// page that defines routing
+
+
+
 
 function App() {
   const [history, setHistory] = useState(null);
@@ -38,31 +43,9 @@ function App() {
   }, [history]);
 
 
-
-
-  const [issue, setIssue] = useState(null);
-  const [data1, setData1] = useState(null);
-  const [data2, setData2] = useState(null);
-
-  useEffect(async () => {
-    setIssue(await getIssue('TP-13'));
-    setData1(await getGeminiResponse());
-    setData2(await getGeminiAnswerJs());
-  }, []);
-
   return (
     <>
       <div>
-        <p>
-          {issue ? JSON.stringify(issue) : 'Loading...'}
-        </p>
-        <p>
-          {issue ? JSON.stringify(data1) : 'Loading...'}
-        </p>
-        <p>
-          {issue ? JSON.stringify(data2) : 'Loading...'}
-        </p>
-
         {history && historyState ? (
           <Router
             navigator={history}
@@ -71,7 +54,7 @@ function App() {
           >
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/page-1" element={<Page1 />}/>
+              <Route path="/generate-subtasks" element={<GenerateSubtasksPage />}/>
               <Route path="/page-2" element={<Page2 />}/>
               <Route path="/page-3" element={<Page3 />}/>
             </Routes>
@@ -102,7 +85,15 @@ Multi-page app example: https://bitbucket.org/atlassian/forge-ui-modifications-e
 
 
 /*
+ const [issue, setIssue] = useState(null);
+  const [data1, setData1] = useState(null);
+  const [data2, setData2] = useState(null);
 
+  useEffect(async () => {
+    setIssue(await getIssue('TP-13'));
+    setData1(await getGeminiResponse());
+    setData2(await getGeminiAnswerJs());
+  }, []);
 
 <p>
         {issue ? JSON.stringify(issue) : 'Loading...'}
