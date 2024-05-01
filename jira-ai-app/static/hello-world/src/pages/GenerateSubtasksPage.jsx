@@ -16,14 +16,16 @@ Lower, put list of generated tasks with checkbox near each one. Lower put "Add p
  */
 
 import {useEffect, useState} from "react";
-import {fetchAllItems} from "../requests/template_requests";
+import {fetchAllBoards, fetchAllStoriesTasksForBoard} from "../requests/template_requests";
 
 export default function GenerateSubtasksPage(){
   const [allUserStories, setAllUserStories] = useState(null);
+  const [allBoards, setAllBoards] = useState(null);
 
 
   const loadData = async() => {
-    setAllUserStories(await fetchAllItems());
+    setAllUserStories(await fetchAllStoriesTasksForBoard(1));
+    setAllBoards(await fetchAllBoards());
   };
 
   useEffect(() => {
@@ -34,6 +36,12 @@ export default function GenerateSubtasksPage(){
     return(
       <>
         <p>{JSON.stringify(allUserStories)}</p>
+        <p>-</p>
+        <p>-</p>
+        <p>-</p>
+        <p>-</p>
+        <p>-</p>
+        <p>{JSON.stringify(allBoards)}</p>
       </>
     );
   }
