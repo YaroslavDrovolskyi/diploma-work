@@ -1,8 +1,7 @@
 
 /*
-Get all issues using "Get issues for board" request. NEED to correctly handle paging in API responses
 
-We also can use "Get issues for board" with Jira Expression API (but be careful with limits).
+NEED to fetch subtasks of issue and display them;
 
 Create List (with radio buttons) with all available user stories and tasks
 (take not-DONE user stories from backlog (add section), and from each unfinished sprint (add section))
@@ -17,21 +16,71 @@ Lower, put list of generated tasks with checkbox near each one. Lower put "Add p
 
 import {useEffect, useState} from "react";
 import {fetchAllBoards, fetchAllStoriesTasksForBoard} from "../requests/template_requests";
+import {getValueInStorage, setValueInStorage} from "../requests/storage";
+import {invoke} from "@forge/bridge";
 
 export default function GenerateSubtasksPage(){
-  const [allUserStories, setAllUserStories] = useState(null);
-  const [allBoards, setAllBoards] = useState(null);
+  const [boards, setBoards] = useState(null);
+  const [issues, setIssues] = useState(null);
+
+  //////////////// need to make useState() on all issues for current board
+
+
+
+  const handleBoardSelection = async(event) => {
+    event.preventDefault();
+
+    const selector = document.getElementById("select-board");
+    const boardId = selector.value;
+
+    setIssues(await fetchAllStoriesTasksForBoard(boardId));
+  }
+
+  const handleIssueSelection = async(event) => {
+    event.preventDefault();
+
+    const selector = document.getElementById("select-board");
+    const boardId = selector.value;
+
+    let checkedRadiobtn = document.querySelector('input[name="issue-radiobtn"]:checked');
+
+    if(checkedRadiobtn == null){
+      console.log('No radiobutton is selected');
+      alert('No radiobutton is selected');
+    }
+    else{
+      console.log(checkedRadiobtn.value);
+      alert(checkedRadiobtn.value);
+    }
+/*
+    const rates = document.getElementsByName("issue-radiobtn");
+    var rate_value;
+    for(var i = 0; i < rates.length; i++){
+      if(rates[i].checked){
+        rate_value = rates[i].value;
+      }
+    }
+
+ */
+
+    setIssues(await fetchAllStoriesTasksForBoard(boardId));
+  }
+
+
 
 
   const loadData = async() => {
-    setAllUserStories(await fetchAllStoriesTasksForBoard(1));
-    setAllBoards(await fetchAllBoards());
+    setBoards(await fetchAllBoards());
+
+//    await invoke('setValueInStorage');
+//    console.log(await invoke('getValueInStorage'));
   };
 
   useEffect(() => {
     loadData().then(r => console.log('loadData() finished'));
   }, []);
 
+/*
   if(allUserStories != null){
     return(
       <>
@@ -46,18 +95,94 @@ export default function GenerateSubtasksPage(){
     );
   }
 
+ */
+
+  /*
   return(
     <>
-      <p>Text will be delivered</p>
+      <div className={"container"}>
+        <h1 className={"text-center mt-5 mb-5"}>Page not found!</h1>
+      </div>
     </>
   );
 
-/*
+   */
+
+
+  if(boards == null){
+    return (
+      <>
+        <div className={"container"}>
+          <h1 className={"text-center mt-5 mb-5"}>Loading...</h1>
+        </div>
+      </>
+    );
+  }
+
+
   return(
     <>
-      <form name="form-generate-subtasks" onSubmit={handleSubmit}>
+      <form name="form-select-board" onSubmit={handleBoardSelection}>
         <div className={"form-group container"}>
+
+
           <div className={"row mb-3"}>
+            <label className="col-2 text-end">Board:</label>
+            <select id={"select-board"} name={"select-board"} className={"form-select col"}>
+              {boards.map((board) => (
+                <option value={board.id}>{board.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <input type="submit" value={"Select!"} className={"btn btn-success form-control mt-3"}/>
+        </div>
+      </form>
+
+
+
+      {issues != null &&
+        <>
+          <form name="form-choose-issue" onSubmit={handleIssueSelection}>
+            <div className={"form-group container"}>
+
+              <div className={"row"}>
+                <div className={"col"}>
+                  {issues.map((issue) => (
+                    <div className={"row mb-3 border border-2 rounded"}>
+
+                      <div className="col-1">
+                        <input type="radio" name="issue-radiobtn" value={issue.id} className={"form-check-input"}/>
+                      </div>
+
+                      <div className="col">
+                        <h5>{issue.key}</h5>
+                        <p className={"mb-0"}><b>ID:</b> {issue.id}</p>
+                        <p className={"mb-0"}><b>Summary:</b> {issue.fields.summary}</p>
+                        <p className={"mb-0"}><b>Type:</b> {issue.fields.issuetype.name}</p>
+                        <p className={"mb-0"}><b>Status:</b> {issue.fields.status.name}</p>
+                        <p className={"mb-0"}><b>Description:</b> {issue.fields.description}</p>
+                      </div>
+                    </div>
+                  ))}
+
+                </div>
+              </div>
+              <input type="submit" value={"Select!"} className={"btn btn-success form-control mt-3 mb-3"}/>
+            </div>
+          </form>
+        </>
+      }
+
+
+    </>
+  );
+}
+
+
+/*
+
+<div className={"row mb-3"}>
             <label className="col-2 text-end">Name</label>
             <input name="name" type="text" required={true} pattern={"^(?!\\s*$).+"} maxLength={40} className={"form-control col"}/>
           </div>
@@ -67,15 +192,7 @@ export default function GenerateSubtasksPage(){
             <input name="variety" type="text" required={true} pattern={"^(?!\\s*$).+"} maxLength={40} className={"form-control col"}/>
           </div>
 
-          <div className={"row mb-3"}>
-            <label className="col-2 text-end">Type</label>
-            <select name="planting-material-type" className={"form-select col"}
-                    value={plantingMaterialType} onChange={changePlantingMaterialType}>
-              <option value="TREE_SEEDLING">Tree seedling</option>
-              <option value="BUSH_SEEDLING">Bush seedling</option>
-              <option value="FLOWER_SEEDLING">Flower seedling</option>
-            </select>
-          </div>
+
 
           <div className={"row mb-3"}>
             <label className="col-2 text-end">Price</label>
@@ -135,12 +252,6 @@ export default function GenerateSubtasksPage(){
             }
           </>
 
-          <input type="submit" value={"Create!"} className={"btn btn-success form-control mt-3"}/>
-        </div>
-      </form>
-    </>
-  );
 
  */
-}
 
