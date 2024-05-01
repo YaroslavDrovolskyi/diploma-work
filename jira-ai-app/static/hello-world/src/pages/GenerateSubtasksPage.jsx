@@ -1,7 +1,8 @@
 
 /*
 
-NEED to fetch subtasks of issue and display them;
+NEED to delete formatting of issues descriptions.
+Need to shrink buttons "Submit!" buttons (using 'col-1' class)
 
 Create List (with radio buttons) with all available user stories and tasks
 (take not-DONE user stories from backlog (add section), and from each unfinished sprint (add section))
@@ -150,18 +151,37 @@ export default function GenerateSubtasksPage(){
                 <div className={"col"}>
                   {issues.map((issue) => (
                     <div className={"row mb-3 border border-2 rounded"}>
-
                       <div className="col-1">
                         <input type="radio" name="issue-radiobtn" value={issue.id} className={"form-check-input"}/>
                       </div>
 
                       <div className="col">
-                        <h5>{issue.key}</h5>
+                        <h4>{issue.key}</h4>
                         <p className={"mb-0"}><b>ID:</b> {issue.id}</p>
                         <p className={"mb-0"}><b>Summary:</b> {issue.fields.summary}</p>
                         <p className={"mb-0"}><b>Type:</b> {issue.fields.issuetype.name}</p>
                         <p className={"mb-0"}><b>Status:</b> {issue.fields.status.name}</p>
-                        <p className={"mb-0"}><b>Description:</b> {issue.fields.description}</p>
+                        {issue.fields.description != null &&
+                          <p className={"mb-0"}><b>Description:</b> {issue.fields.description}</p>
+                        }
+
+                        {issue.fields.subtasks != null && issue.fields.subtasks.length > 0 &&
+                          <>
+                            <p className={"mb-0"}><b>Subtasks:</b></p>
+                            {issue.fields.subtasks.map((subtask) => (
+                              <>
+                                <div className={"row mb-1 border border-1 rounded border-primary ml-2"}>
+                                  <h5>{subtask.key}</h5>
+                                  <p className={"mb-0"}><b>ID:</b> {subtask.id}</p>
+                                  <p className={"mb-0"}><b>Summary:</b> {subtask.fields.summary}</p>
+                                  {subtask.fields.description != null && // this is not displayed, because .description attribute is absent even if description exists
+                                    <p className={"mb-0"}><b>Description:</b> {subtask.fields.description}</p>
+                                  }
+                                </div>
+                              </>
+                            ))}
+                          </>
+                        }
                       </div>
                     </div>
                   ))}
@@ -251,6 +271,16 @@ export default function GenerateSubtasksPage(){
               </>
             }
           </>
+
+
+ */
+
+/*
+  - How to get a selected radiobutton: https://stackoverflow.com/a/15839451
+  - Get selected item from list: https://stackoverflow.com/a/1085810
+
+  - Borders in Bootstrap: https://getbootstrap.com/docs/5.0/utilities/borders/
+  - Format of checks and radio buttons in Bootstrap: https://getbootstrap.com/docs/5.0/forms/checks-radios/
 
 
  */

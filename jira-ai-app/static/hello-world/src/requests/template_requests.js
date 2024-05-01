@@ -55,7 +55,7 @@ export const fetchAllStoriesTasksForBoard = async (boardId) => {
   while(continueFetching){
     const resp = await requestJira(
       `/rest/agile/1.0/board/${boardId}/issue?startAt=${startAt}&jql=status!=Done+and+(type=Story+or+type=Task) \
-    &fields=id,key,issuetype,status,summary,description&maxResults=50`);
+    &fields=id,key,issuetype,status,summary,description,subtasks&maxResults=50`);
     let response = await resp.json();
 
     // add fetched issues to map
