@@ -19,6 +19,7 @@ import {useEffect, useState} from "react";
 import {fetchAllBoards, fetchAllStoriesTasksForBoard} from "../requests/template_requests";
 import {getValueInStorage, setValueInStorage} from "../requests/storage";
 import {invoke} from "@forge/bridge";
+import {convertJiraWikiMarkupToPlainText} from "../requests/helpers";
 
 export default function GenerateSubtasksPage(){
   const [boards, setBoards] = useState(null);
@@ -123,9 +124,9 @@ export default function GenerateSubtasksPage(){
 
   return(
     <>
+      {/* Select board */}
       <form name="form-select-board" onSubmit={handleBoardSelection}>
         <div className={"form-group container"}>
-
 
           <div className={"row mb-3"}>
             <label className="col-2 text-end">Board:</label>
@@ -136,7 +137,13 @@ export default function GenerateSubtasksPage(){
             </select>
           </div>
 
-          <input type="submit" value={"Select!"} className={"btn btn-success form-control mt-3"}/>
+          {/* Submit */}
+          <div className={"row justify-content-center mt-3"}>
+            <div className="col-2 text-center">
+              <input type="submit" value={"Select!"} className={"btn btn-success form-control mt-3"}/>
+            </div>
+          </div>
+
         </div>
       </form>
 
@@ -144,11 +151,14 @@ export default function GenerateSubtasksPage(){
 
       {issues != null &&
         <>
+          {/* Select issue */}
           <form name="form-choose-issue" onSubmit={handleIssueSelection}>
             <div className={"form-group container"}>
 
               <div className={"row"}>
                 <div className={"col"}>
+
+                  {/* Issues plates */}
                   {issues.map((issue) => (
                     <div className={"row mb-3 border border-2 rounded"}>
                       <div className="col-1">
@@ -162,9 +172,12 @@ export default function GenerateSubtasksPage(){
                         <p className={"mb-0"}><b>Type:</b> {issue.fields.issuetype.name}</p>
                         <p className={"mb-0"}><b>Status:</b> {issue.fields.status.name}</p>
                         {issue.fields.description != null &&
-                          <p className={"mb-0"}><b>Description:</b> {issue.fields.description}</p>
+                          <p className={"mb-0"}><b>Description:</b> {
+                            convertJiraWikiMarkupToPlainText(issue.fields.description)
+                          }</p>
                         }
 
+                        {/* Plates of issue subtasks */}
                         {issue.fields.subtasks != null && issue.fields.subtasks.length > 0 &&
                           <>
                             <p className={"mb-0"}><b>Subtasks:</b></p>
@@ -175,7 +188,9 @@ export default function GenerateSubtasksPage(){
                                   <p className={"mb-0"}><b>ID:</b> {subtask.id}</p>
                                   <p className={"mb-0"}><b>Summary:</b> {subtask.fields.summary}</p>
                                   {subtask.fields.description != null && // this is not displayed, because .description attribute is absent even if description exists
-                                    <p className={"mb-0"}><b>Description:</b> {subtask.fields.description}</p>
+                                    <p className={"mb-0"}><b>Description:</b> {
+                                      convertJiraWikiMarkupToPlainText(subtask.fields.description)
+                                    }</p>
                                   }
                                 </div>
                               </>
@@ -188,7 +203,14 @@ export default function GenerateSubtasksPage(){
 
                 </div>
               </div>
-              <input type="submit" value={"Select!"} className={"btn btn-success form-control mt-3 mb-3"}/>
+
+              {/* Submit */}
+              <div className={"row justify-content-center mt-3"}>
+                <div className="col-2 text-center">
+                  <input type="submit" value={"Select!"} className={"btn btn-success form-control mt-3 mb-3"}/>
+                </div>
+              </div>
+
             </div>
           </form>
         </>
