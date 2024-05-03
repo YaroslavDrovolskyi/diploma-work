@@ -156,6 +156,6 @@ const wikiToMarkdown = (str) => {
  * @param str
  * @return {string}
  */
-const replaceNewlines = (str) => {
+export const replaceNewlines = (str) => {
   return str.replaceAll(new RegExp('\\.?\\s*\\n+\\s*', 'g'), ". ");
 }

@@ -11,13 +11,25 @@ Lower, put button "Generate"
 
 (mb navigate to other page)
 Lower, put list of generated tasks with checkbox near each one. Lower put "Add picked subtasks".
+Near each generated subtask put button "add" that will add this task
+
+submit changes to data in storage ONLY when form-generate-subtasks is submitted
+
+Make button re-generate (instead, user can use "generate")
+NEED to delete \n from user input
+
+
+for existing tasks ({{task}}) we provide list (\n-separated) with title and description of user story
+
+NEED to create request to get all subtasks (also DONE) for some issue
  */
 
 import {useEffect, useState} from "react";
 import {fetchAllBoards, fetchAllStoriesTasksForBoard} from "../requests/template_requests";
 import {getValueInStorage, setValueInStorage} from "../requests/storage";
 import {invoke} from "@forge/bridge";
-import {convertJiraWikiMarkupToPlainText} from "../requests/helpers";
+import {convertJiraWikiMarkupToPlainText} from "../requests/helpers.js";
+import ReactDOM from "react-dom";
 
 export default function GenerateSubtasksPage(){
   const [boards, setBoards] = useState(null);
@@ -34,16 +46,17 @@ export default function GenerateSubtasksPage(){
     const boardId = selector.value;
 
     setIssues(await fetchAllStoriesTasksForBoard(boardId));
+
+
+
   }
 
   const handleIssueSelection = async(event) => {
     event.preventDefault();
 
-    const selector = document.getElementById("select-board");
-    const boardId = selector.value;
-
     let checkedRadiobtn = document.querySelector('input[name="issue-radiobtn"]:checked');
 
+    //////////////////////
     if(checkedRadiobtn == null){
       console.log('No radiobutton is selected');
       alert('No radiobutton is selected');
@@ -51,19 +64,41 @@ export default function GenerateSubtasksPage(){
     else{
       console.log(checkedRadiobtn.value);
       alert(checkedRadiobtn.value);
-    }
-/*
-    const rates = document.getElementsByName("issue-radiobtn");
-    var rate_value;
-    for(var i = 0; i < rates.length; i++){
-      if(rates[i].checked){
-        rate_value = rates[i].value;
+
+      // render component that contain input fields
+      let parent = document.getElementById('input-fields-parent');
+      ReactDOM.render( <InputFields/>, parent );
+
+      // load default input
+      let product = await getValueInStorage('product');
+      if(product !== undefined){
+        document.getElementById('product-input').value = product;
       }
+      else{
+        ///////////////////////// GET project name
+      }
+
+      let productVision = await getValueInStorage('product-vision');
+      if(productVision !== undefined){
+        document.getElementById('product-vision-input').value = productVision;
+      }
+
+      
+      document.getElementById('technologies-input').value = 5000;
+      document.getElementById('max-subtasks-number-input').value = 10000;
+      /////////////// all values from this inputs will be saved as a default after generating.
     }
 
- */
 
-//    setIssues(await fetchAllStoriesTasksForBoard(boardId));
+
+  }
+
+
+  const handleGenerateSubtasks = async(event) => {
+    event.preventDefault();
+
+    console.log('handleGenerateSubtasks()');
+    alert('handleGenerateSubtasks()');
   }
 
 
@@ -126,7 +161,7 @@ export default function GenerateSubtasksPage(){
       <form name="form-select-board" onSubmit={handleBoardSelection}>
         <div className={"form-group container"}>
 
-          <div className={"row mb-3"}>
+          <div className={"row mb-1"}>
             <label className="col-2 text-end">Board:</label>
             <select id={"select-board"} name={"select-board"} className={"form-select col"}>
               {boards.map((board) => (
@@ -136,9 +171,9 @@ export default function GenerateSubtasksPage(){
           </div>
 
           {/* Submit */}
-          <div className={"row justify-content-center mt-3"}>
+          <div className={"row justify-content-center mt-2 mb-4"}>
             <div className="col-2 text-center">
-              <input type="submit" value={"Select!"} className={"btn btn-success form-control mt-3"}/>
+              <input type="submit" value={"Select!"} className={"btn btn-success form-control"}/>
             </div>
           </div>
 
@@ -151,7 +186,7 @@ export default function GenerateSubtasksPage(){
         <>
           {/* Select issue */}
           <form name="form-choose-issue" onSubmit={handleIssueSelection}>
-            <div className={"form-group container"}>
+            <div className={"form-group container mb-3"}>
 
               <div className={"row"}>
                 <div className={"col"}>
@@ -203,9 +238,9 @@ export default function GenerateSubtasksPage(){
               </div>
 
               {/* Submit */}
-              <div className={"row justify-content-center mt-3"}>
+              <div className={"row justify-content-center mt-1"}>
                 <div className="col-2 text-center">
-                  <input type="submit" value={"Select!"} className={"btn btn-success form-control mt-3 mb-3"}/>
+                  <input type="submit" value={"Select!"} className={"btn btn-success form-control"}/>
                 </div>
               </div>
 
@@ -214,8 +249,57 @@ export default function GenerateSubtasksPage(){
         </>
       }
 
+      <div id={"input-fields-parent"}>
+
+      </div>
+
 
     </>
+  );
+
+
+  function InputFields() {
+    return (
+      <>
+        {/* Input fields */}
+        <form name="form-generate-subtasks" onSubmit={handleGenerateSubtasks}>
+          <div className={"form-group container mt-3 mb-3"}>
+
+            {/* Product */}
+            <div className={"row mb-1"}>
+              <label htmlFor="product-input" className="col-2 text-end">Product:</label>
+              <input type="text" className="form-control col mb-2" id="product-input"/>
+            </div>
+
+            {/* Product vision */}
+            <div className={"row mb-1"}>
+              <label htmlFor="product-vision-input" className="col-2 text-end">Product vision:</label>
+              <textarea className="form-control col mb-2" id="product-vision-input" rows="3"/>
+            </div>
+
+            {/* Technologies used */}
+            <div className={"row mb-1"}>
+              <label htmlFor="technologies-input" className="col-2 text-end">Technologies used:</label>
+              <textarea className="form-control col mb-2" id="technologies-input" rows="3"/>
+            </div>
+
+            {/* Max numer of subtasks to generate */}
+            <div className={"row mb-1"}>
+              <label htmlFor="max-subtasks-number-input" className="col-2 text-end">Max number of subtasks to generate:</label>
+              <input id="max-subtasks-number-input" type="number" min={1} step={1} defaultValue={1} className="form-control col"/>
+            </div>
+          </div>
+        </form>
+      </>
+    );
+  }
+
+
+}
+
+function HelloWorld(){
+  return(
+    <h1>Hello world</h1>
   );
 }
 
