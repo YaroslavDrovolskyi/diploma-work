@@ -1,8 +1,6 @@
 
 /*
 
-NEED to delete formatting of issues descriptions.
-Need to shrink buttons "Submit!" buttons (using 'col-1' class)
 
 Create List (with radio buttons) with all available user stories and tasks
 (take not-DONE user stories from backlog (add section), and from each unfinished sprint (add section))
@@ -65,7 +63,7 @@ export default function GenerateSubtasksPage(){
 
  */
 
-    setIssues(await fetchAllStoriesTasksForBoard(boardId));
+//    setIssues(await fetchAllStoriesTasksForBoard(boardId));
   }
 
 

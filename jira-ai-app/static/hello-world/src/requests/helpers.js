@@ -1,5 +1,6 @@
 import {requestJira} from "@forge/bridge";
 // import j2m from "jira2md";
+import removeMarkdown from "./helpers.ts";
 
 export const getIssue = async(issueIdOrKey) => {
   const response = await requestJira(`/rest/agile/1.0/issue/${issueIdOrKey}`);
@@ -62,21 +63,6 @@ export const getGeminiAnswerJs = async() => {
 
 
 /**
- * Replaces any sequence of whitespace characters (only if it has at least one newline (\n) character) with '. '
- * The purpose of this function is to help to convert text from Jira wiki markup to plain format.
- * @param str
- * @return {string}
- */
-const replaceNewlines = (str) => {
-  return str.replaceAll(new RegExp('\\.?\\s*\\n+\\s*', 'g'), ". ");
-}
-
-//const j2m = require('jira2md');
-
-// const { markdownToTxt } = require('markdown-to-txt');
-const removeMarkdown = require("markdown-to-text");
-
-/**
  * Deletes all formatting from Jira Wiki markup-formatted string. For example, \*\*text** will be converted to text.
  * <br/>
  * Also replaces each sequence of whitespace characters (only if it has at least one newline (\n) character) with '. '.
@@ -85,18 +71,18 @@ const removeMarkdown = require("markdown-to-text");
  * @return {string}
  */
 export const convertJiraWikiMarkupToPlainText = (wikiText) => {
-//  const mdText = j2m.to_markdown(wikiText);
-  const mdText = to_markdown(wikiText);
-//  const plainTextWithNewlines = markdownToTxt(mdText);
-  const plainTextWithNewlines = removeMarkdown(mdText);
+  const mdText = wikiToMarkdown(wikiText);
+  const plainTextWithNewlines = removeMarkdown(mdText, false, true, true, true, false);
   return replaceNewlines(plainTextWithNewlines);
 }
 
-/*
-copy of J2M function. Copied because had problems with importing J2M library
-(particularly, importing of 'marked' library has failed inside the J2M library)
+/**
+ Source: J2M package: [https://www.npmjs.com/package/j2m](https://www.npmjs.com/package/j2m),
+ [https://github.com/FokkeZB/J2M/blob/master/src/J2M.js](https://github.com/FokkeZB/J2M/blob/master/src/J2M.js)
+ Copied because had problems with importing J2M library.
+ (particularly, importing of 'marked' library has failed inside the J2M library)
  */
-const to_markdown = (str) => {
+const wikiToMarkdown = (str) => {
   return (
     str
       // Un-Ordered Lists
@@ -162,4 +148,14 @@ const to_markdown = (str) => {
   // .replace(/\|(?<![^|]*<ins>)([^<]*)<\/ins>([^|]*)\|/g, (_, preceding, following) => {
   //     return `|${preceding}+${following}|`;
   // });
+}
+
+/**
+ * Replaces any sequence of whitespace characters (only if it has at least one newline (\n) character) with '. '
+ * The purpose of this function is to help to convert text from Jira wiki markup to plain format.
+ * @param str
+ * @return {string}
+ */
+const replaceNewlines = (str) => {
+  return str.replaceAll(new RegExp('\\.?\\s*\\n+\\s*', 'g'), ". ");
 }
