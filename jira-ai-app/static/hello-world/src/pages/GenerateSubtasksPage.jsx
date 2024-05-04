@@ -32,28 +32,53 @@ import {getValueInStorage, setValueInStorage} from "../requests/storage";
 import {invoke, view} from "@forge/bridge";
 import {convertJiraWikiMarkupToPlainText, isEmpty} from "../requests/helpers.js";
 import ReactDOM from "react-dom";
+import LoadingComponent from "./LoadingComponent";
+
+/**
+ * Deletes from DOM all children of given `parent` element
+ * @param parent
+ */
+function deleteChildren(parent) {
+  /*
+  let children = Array.from(parent.childNodes);
+
+  console.log(`children: ${children}`);
+
+  for (const child of children){
+    parent.removeChild(child);
+  }
+
+   */
+
+  while (parent.firstChild) {
+    parent.firstChild.remove()
+  }
+}
+
 
 export default function GenerateSubtasksPage(){
   const [boards, setBoards] = useState(null);
-  const [issues, setIssues] = useState(null);
 
-  //////////////// need to make useState() on all issues for current board
-
-
-
-  const handleBoardSelection = async(event) => {
+  const onBoardSelected = async(event) => {
     event.preventDefault();
 
     const selector = document.getElementById("select-board");
     const boardId = selector.value;
 
-    setIssues(await fetchAllStoriesTasksForBoard(boardId));
+    let issues = await fetchAllStoriesTasksForBoard(boardId);
 
-
-
+    // render inputs for generation parameters
+    let parent = document.getElementById('generation-parameters-inputs-component-parent');
+    /*
+      If the React element was previously rendered into container,
+      this will perform an update on it and only mutate the DOM as necessary to reflect the latest React element.
+      https://legacy.reactjs.org/docs/react-dom.html#render
+     */
+    ReactDOM.render(<GenerationParametersInputsComponents issues={issues}/>, parent);
   }
+  
 
-  const onIssueSelected = async(event) => {
+  const onGenerationParamsSubmitted = async(event) => {
     event.preventDefault();
 
     let checkedRadiobtn = document.querySelector('input[name="issue-radiobtn"]:checked');
@@ -63,51 +88,15 @@ export default function GenerateSubtasksPage(){
       alert('No issue is selected');
     }
     else{
-      console.log(checkedRadiobtn.value); /////////////////////////
-      alert(checkedRadiobtn.value); ///////////////////////////////
-
-      ////////////////////////////////////// NEED to pass [val, setVal] into InputFields;
-
-      // render component that contains input fields
-      let parent = document.getElementById('input-fields-parent');
-      ReactDOM.render( <InputFields/>, parent );
-/*
-      // load default inputs
-      // load product
-      let product = await getValueInStorage('product');
-      if(product === undefined || product === null || isEmpty(product)){
-        const currentProject = await fetchCurrentProject();
-        product = currentProject.name;
-      }
-      document.getElementById('product-input').value = product;
-
-      // load product vision
-      let productVision = await getValueInStorage('product-vision');
-      if(productVision !== undefined && productVision !== null && !isEmpty(productVision)){
-        document.getElementById('product-vision-input').value = productVision;
-      }
-
-      // load technologies
-      let technologies = await getValueInStorage('technologies');
-      if(technologies !== undefined && technologies !== null && !isEmpty(technologies)){
-        document.getElementById('technologies-input').value = technologies;
-      }
-
-      /////////////// all values from this inputs will be saved as a default after generating subtasks.
-
- */
+      console.log(`Selected issue with ID = ${checkedRadiobtn.value}`); /////////////////////////
+      alert(`Selected issue with ID = ${checkedRadiobtn.value}`); ///////////////////////////////
     }
 
 
+    /////////////////////////////////////// NEED to collect all data and call generation.
+    //// values of product/produtVision inouts won't be 'Loading...',
+    // because form submission becomes possible only after default data is downloaded
 
-  }
-
-
-  const handleGenerateSubtasks = async(event) => {
-    event.preventDefault();
-
-    console.log('handleGenerateSubtasks()');
-    alert('handleGenerateSubtasks()');
   }
 
 
@@ -124,82 +113,121 @@ export default function GenerateSubtasksPage(){
     loadData().then(r => console.log('loadData() finished'));
   }, []);
 
-/*
-  if(allUserStories != null){
-    return(
-      <>
-        <p>{JSON.stringify(allUserStories)}</p>
-        <p>-</p>
-        <p>-</p>
-        <p>-</p>
-        <p>-</p>
-        <p>-</p>
-        <p>{JSON.stringify(allBoards)}</p>
-      </>
-    );
-  }
 
- */
-
-  /*
   return(
     <>
-      <div className={"container"}>
-        <h1 className={"text-center mt-5 mb-5"}>Page not found!</h1>
+      {boards == null ? (
+        <LoadingComponent/>
+      ) : (
+        <SelectBoardComponent boards={boards}/>
+      )}
+
+
+      <div id={"generation-parameters-inputs-component-parent"}>
       </div>
+
+
+
+
+      <div id={"input-fields-parent"}>
+
+      </div>
+
+
     </>
   );
 
-   */
 
-
-  if(boards == null){
-    return (
+  function SelectBoardComponent({boards}) {
+    return(
       <>
-        <div className={"container"}>
-          <h1 className={"text-center mt-5 mb-5"}>Loading...</h1>
-        </div>
+        {/* Select board */}
+        <form name="form-select-board" onSubmit={onBoardSelected}>
+          <div className={"form-group container"}>
+
+            <div className={"row mb-1"}>
+              <label className="col-2 text-end">Board:</label>
+              <select id={"select-board"} name={"select-board"} className={"form-select col"}>
+                {boards.map((board) => (
+                  <option value={board.id}>{board.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Submit */}
+            <div className={"row justify-content-center mt-2 mb-4"}>
+              <div className="col-2 text-center">
+                <input type="submit" value={"Select!"} className={"btn btn-success form-control"}/>
+              </div>
+            </div>
+
+          </div>
+        </form>
       </>
-    );
+    )
   }
 
 
-  return(
-    <>
-      {/* Select board */}
-      <form name="form-select-board" onSubmit={handleBoardSelection}>
-        <div className={"form-group container"}>
+  /**
+   * issues should be null. It can be empty
+   * @param issues
+   * @return {JSX.Element}
+   * @constructor
+   */
+  function GenerationParametersInputsComponents({issues}) {
+    // null is not loaded, undefined or value is OK to display
+    const [product, setProduct] = useState(null);
+    const [productVision, setProductVision] = useState(null);
+    const [technologies, setTechnologies] = useState(null);
+    /////////////// all values from this inputs will be saved as a default after generating subtasks.
 
-          <div className={"row mb-1"}>
-            <label className="col-2 text-end">Board:</label>
-            <select id={"select-board"} name={"select-board"} className={"form-select col"}>
-              {boards.map((board) => (
-                <option value={board.id}>{board.name}</option>
-              ))}
-            </select>
-          </div>
+    const fetchProduct = async() => {
+      let p = await getValueInStorage('product');
+      if(p === undefined || p === null || isEmpty(p)){ // not stored in storage
+        const currentProject = await fetchCurrentProject();
+        p = currentProject.name;
+      }
+      return p;
+    }
 
-          {/* Submit */}
-          <div className={"row justify-content-center mt-2 mb-4"}>
-            <div className="col-2 text-center">
-              <input type="submit" value={"Select!"} className={"btn btn-success form-control"}/>
-            </div>
-          </div>
+    const fetchProductVision = async() => {
+      let pv = await getValueInStorage('product-vision');
+      if(pv !== undefined && pv !== null && !isEmpty(pv)){ // stored in storage
+        return pv;
+      }
+      return undefined;
+    }
 
-        </div>
-      </form>
+    const fetchTechnologies = async() => {
+      let t = await getValueInStorage('technologies');
+      if(t !== undefined && t !== null && !isEmpty(t)){ // stored in storage
+        return t;
+      }
+      return undefined;
+    }
+
+    const loadDefaultValues = async() => {
+      setProduct(await fetchProduct());
+      setProductVision(await fetchProductVision());
+      setTechnologies(await fetchTechnologies());
+    };
+
+    useEffect(() => {
+      loadDefaultValues();
+    }, []);
 
 
 
-      {issues != null &&
-        <>
+    return (
+      <>
+        <form name="form-generation-parameters-inputs" onSubmit={onGenerationParamsSubmitted}>
+
+          <h3>Select issue:</h3>
           {/* Select issue */}
-          <form name="form-choose-issue" onSubmit={onIssueSelected}>
+          {issues.length > 0 ? (
             <div className={"form-group container mb-3"}>
-
               <div className={"row"}>
                 <div className={"col"}>
-
                   {/* Issues plates */}
                   {issues.map((issue) => (
                     <div className={"row mb-3 border border-2 rounded"}>
@@ -245,84 +273,20 @@ export default function GenerateSubtasksPage(){
 
                 </div>
               </div>
-
-              {/* Submit */}
-              <div className={"row justify-content-center mt-1"}>
-                <div className="col-2 text-center">
-                  <input type="submit" value={"Select!"} className={"btn btn-success form-control"}/>
-                </div>
-              </div>
-
             </div>
-          </form>
-        </>
-      }
-
-      <div id={"input-fields-parent"}>
-
-      </div>
-
-
-    </>
-  );
+          ) : (
+            <div className={"form-group container mb-3"}>
+            <div className="row">
+              <div className="col text-center">
+                <p>No issues exist</p>
+              </div>
+            </div>
+            </div>
+          )}
 
 
-  function InputFields({initProduct, initProductVision, initTechnologies}) {
-    // null is not loaded, undefined or value is OK to display
-    const [product, setProduct] = useState(null);
-    const [productVision, setProductVision] = useState(null);
-    const [technologies, setTechnologies] = useState(null);
-    /////////////// all values from this inputs will be saved as a default after generating subtasks.
-
-    const fetchProduct = async() => {
-      let p = await getValueInStorage('product');
-      if(p === undefined || p === null || isEmpty(p)){ // not stored in storage
-        const currentProject = await fetchCurrentProject();
-        p = currentProject.name;
-      }
-      return p;
-    }
-
-    const fetchProductVision = async() => {
-      let pv = await getValueInStorage('product-vision');
-      if(pv !== undefined && pv !== null && !isEmpty(pv)){ // stored in storage
-        return pv;
-      }
-      return undefined;
-    }
-
-    const fetchTechnologies = async() => {
-      let t = await getValueInStorage('technologies');
-      if(t !== undefined && t !== null && !isEmpty(t)){ // stored in storage
-        return t;
-      }
-      return undefined;
-    }
-
-    const loadDefaultValues = async() => {
-      setProduct(await fetchProduct());
-      setProductVision(await fetchProductVision());
-      setTechnologies(await fetchTechnologies());
-    };
-
-    useEffect(() => {
-      loadDefaultValues();
-    }, []);
-
-
-
-//    document.getElementById('product-vision-input').value = productVision;
-//    document.getElementById('product-input').value = product;
-//    document.getElementById('technologies-input').value = technologies;
-
-    //////////// DO not display 'submit' button until all values will be downloaded
-
-
-
-    return (
-      <>
-        {/* Input fields */}
-        <form name="form-generate-subtasks" onSubmit={handleGenerateSubtasks}>
+          <h3>Enter parameters:</h3>
+          {/* Input fields */}
           <div className={"form-group container mt-3 mb-3"}>
 
             {/* Product */}
@@ -380,7 +344,9 @@ export default function GenerateSubtasksPage(){
             </div>
           </div>
 
+
           {/* Submit */}
+          {/* DO not display 'Submit' button until all values will be downloaded */}
           {product !== null && productVision !== null && technologies !== null && (
             <div className={"row justify-content-center mt-1"}>
               <div className="col-2 text-center">
@@ -392,8 +358,6 @@ export default function GenerateSubtasksPage(){
       </>
     );
   }
-
-
 }
 
 
