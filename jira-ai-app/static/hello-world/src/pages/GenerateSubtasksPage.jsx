@@ -1,18 +1,13 @@
 
 /*
++ Create List (with radio buttons) with all available user stories and tasks
++ (take not-DONE user stories from backlog (add section), and from each unfinished sprint (add section))
++ For each user story show: ID, Key, issue type, status, summary and description
 
-NEED to make one component for selecting issue and params for it
++ Below, Put rest of input fields
++ Lower, put button "Generate"
 
-
-Create List (with radio buttons) with all available user stories and tasks
-(take not-DONE user stories from backlog (add section), and from each unfinished sprint (add section))
-For each user story show: ID, Key, issue type, status, summary and description
-
-Below, Put rest of input fields
-Lower, put button "Generate"
-
-(mb navigate to other page)
-Lower, put list of generated tasks with checkbox near each one. Lower put "Add picked subtasks".
+Lower, put list of generated subtasks with checkbox near each one. Lower put "Add picked subtasks".
 Near each generated subtask put button "add" that will add this task
 
 submit changes to data in storage ONLY when form-generate-subtasks is submitted
@@ -27,12 +22,19 @@ NEED to create request to get all subtasks (also DONE) for some issue
  */
 
 import {useEffect, useState} from "react";
-import {fetchAllBoards, fetchAllStoriesTasksForBoard, fetchCurrentProject} from "../requests/template_requests";
+import {
+  fetchAllBoards,
+  fetchAllStoriesTasksForBoard,
+  fetchCurrentProject,
+  fetchIssue
+} from "../requests/template_requests";
 import {getValueInStorage, setValueInStorage} from "../requests/storage";
 import {invoke, view} from "@forge/bridge";
 import {convertJiraWikiMarkupToPlainText, isEmpty} from "../requests/helpers.js";
 import ReactDOM from "react-dom";
 import LoadingComponent from "./LoadingComponent";
+import {readFile, replaceSubstrings} from "../requests/prompts_generators";
+import file from "./some.hbs";
 
 /**
  * Deletes from DOM all children of given `parent` element
@@ -74,9 +76,9 @@ export default function GenerateSubtasksPage(){
       this will perform an update on it and only mutate the DOM as necessary to reflect the latest React element.
       https://legacy.reactjs.org/docs/react-dom.html#render
      */
-    ReactDOM.render(<GenerationParametersInputsComponents issues={issues}/>, parent);
+    ReactDOM.render(<GenerationParametersInputsComponent issues={issues}/>, parent);
   }
-  
+
 
   const onGenerationParamsSubmitted = async(event) => {
     event.preventDefault();
@@ -90,11 +92,27 @@ export default function GenerateSubtasksPage(){
     else{
       console.log(`Selected issue with ID = ${checkedRadiobtn.value}`); /////////////////////////
       alert(`Selected issue with ID = ${checkedRadiobtn.value}`); ///////////////////////////////
+
+      const issue = await fetchIssue('TP-15'); ////////////////////
+//      console.log(JSON.stringify(issue)); /////////////////
+
+      //////// test rendering .hbs file
+
+//      import file from './some.hbs';
+
+//      console.log(renderedString);
+      let file = require('./some.hbs');
+      const text = await readFile(file);
+      console.log(`Text: ${text}`);
+      const convertedText = replaceSubstrings(text, {'{{test1}}': '1', '{{test2}}': '2'});
+      console.log(`Converted Text: ${convertedText}`);
+
+      // issue.fields.subtasks.[i].fields.summary
     }
 
 
     /////////////////////////////////////// NEED to collect all data and call generation.
-    //// values of product/produtVision inouts won't be 'Loading...',
+    //// values of product/produtVision inputs won't be 'Loading...',
     // because form submission becomes possible only after default data is downloaded
 
   }
@@ -114,6 +132,7 @@ export default function GenerateSubtasksPage(){
   }, []);
 
 
+  // The basis of whole page
   return(
     <>
       {boards == null ? (
@@ -122,18 +141,11 @@ export default function GenerateSubtasksPage(){
         <SelectBoardComponent boards={boards}/>
       )}
 
-
       <div id={"generation-parameters-inputs-component-parent"}>
       </div>
 
-
-
-
-      <div id={"input-fields-parent"}>
-
+      <div id={"generated-subtasks-component-parent"}>
       </div>
-
-
     </>
   );
 
@@ -169,17 +181,16 @@ export default function GenerateSubtasksPage(){
 
 
   /**
-   * issues should be null. It can be empty
-   * @param issues
+   * @param issues SHOULD NOT be null. But can be empty
    * @return {JSX.Element}
    * @constructor
    */
-  function GenerationParametersInputsComponents({issues}) {
+  function GenerationParametersInputsComponent({issues}) {
     // null is not loaded, undefined or value is OK to display
     const [product, setProduct] = useState(null);
     const [productVision, setProductVision] = useState(null);
     const [technologies, setTechnologies] = useState(null);
-    /////////////// all values from this inputs will be saved as a default after generating subtasks.
+    // all values from this inputs will be saved as a default AFTER generating subtasks.
 
     const fetchProduct = async() => {
       let p = await getValueInStorage('product');
@@ -357,6 +368,16 @@ export default function GenerateSubtasksPage(){
         </form>
       </>
     );
+  }
+
+
+  function GeneratedSubtasksComponent({subtasks}){
+    return(
+      <>
+        <h1>GeneratedSubtasksComponent</h1>
+      </>
+    )
+
   }
 }
 

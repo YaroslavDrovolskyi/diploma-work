@@ -92,3 +92,10 @@ export const fetchCurrentProject = async() => {
   const response = await requestJira(`/rest/api/3/project/${projectId}`);
   return await response.json();
 }
+
+
+export const fetchIssue = async(issueIdOrKey) => {
+  const response = await requestJira(`/rest/agile/1.0/issue/${issueIdOrKey}?fields=id,key,issuetype,status,summary,description,subtasks`);
+
+  return await response.json();
+}
