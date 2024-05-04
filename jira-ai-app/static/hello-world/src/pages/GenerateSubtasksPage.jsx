@@ -1,6 +1,8 @@
 
 /*
 
+NEED to make one component for selecting issue and params for it
+
 
 Create List (with radio buttons) with all available user stories and tasks
 (take not-DONE user stories from backlog (add section), and from each unfinished sprint (add section))
@@ -25,10 +27,10 @@ NEED to create request to get all subtasks (also DONE) for some issue
  */
 
 import {useEffect, useState} from "react";
-import {fetchAllBoards, fetchAllStoriesTasksForBoard} from "../requests/template_requests";
+import {fetchAllBoards, fetchAllStoriesTasksForBoard, fetchCurrentProject} from "../requests/template_requests";
 import {getValueInStorage, setValueInStorage} from "../requests/storage";
-import {invoke} from "@forge/bridge";
-import {convertJiraWikiMarkupToPlainText} from "../requests/helpers.js";
+import {invoke, view} from "@forge/bridge";
+import {convertJiraWikiMarkupToPlainText, isEmpty} from "../requests/helpers.js";
 import ReactDOM from "react-dom";
 
 export default function GenerateSubtasksPage(){
@@ -51,42 +53,49 @@ export default function GenerateSubtasksPage(){
 
   }
 
-  const handleIssueSelection = async(event) => {
+  const onIssueSelected = async(event) => {
     event.preventDefault();
 
     let checkedRadiobtn = document.querySelector('input[name="issue-radiobtn"]:checked');
 
-    //////////////////////
     if(checkedRadiobtn == null){
-      console.log('No radiobutton is selected');
-      alert('No radiobutton is selected');
+      console.log('No issue is selected');
+      alert('No issue is selected');
     }
     else{
-      console.log(checkedRadiobtn.value);
-      alert(checkedRadiobtn.value);
+      console.log(checkedRadiobtn.value); /////////////////////////
+      alert(checkedRadiobtn.value); ///////////////////////////////
 
-      // render component that contain input fields
+      ////////////////////////////////////// NEED to pass [val, setVal] into InputFields;
+
+      // render component that contains input fields
       let parent = document.getElementById('input-fields-parent');
       ReactDOM.render( <InputFields/>, parent );
-
-      // load default input
+/*
+      // load default inputs
+      // load product
       let product = await getValueInStorage('product');
-      if(product !== undefined){
-        document.getElementById('product-input').value = product;
+      if(product === undefined || product === null || isEmpty(product)){
+        const currentProject = await fetchCurrentProject();
+        product = currentProject.name;
       }
-      else{
-        ///////////////////////// GET project name
-      }
+      document.getElementById('product-input').value = product;
 
+      // load product vision
       let productVision = await getValueInStorage('product-vision');
-      if(productVision !== undefined){
+      if(productVision !== undefined && productVision !== null && !isEmpty(productVision)){
         document.getElementById('product-vision-input').value = productVision;
       }
 
-      
-      document.getElementById('technologies-input').value = 5000;
-      document.getElementById('max-subtasks-number-input').value = 10000;
-      /////////////// all values from this inputs will be saved as a default after generating.
+      // load technologies
+      let technologies = await getValueInStorage('technologies');
+      if(technologies !== undefined && technologies !== null && !isEmpty(technologies)){
+        document.getElementById('technologies-input').value = technologies;
+      }
+
+      /////////////// all values from this inputs will be saved as a default after generating subtasks.
+
+ */
     }
 
 
@@ -185,7 +194,7 @@ export default function GenerateSubtasksPage(){
       {issues != null &&
         <>
           {/* Select issue */}
-          <form name="form-choose-issue" onSubmit={handleIssueSelection}>
+          <form name="form-choose-issue" onSubmit={onIssueSelected}>
             <div className={"form-group container mb-3"}>
 
               <div className={"row"}>
@@ -258,7 +267,58 @@ export default function GenerateSubtasksPage(){
   );
 
 
-  function InputFields() {
+  function InputFields({initProduct, initProductVision, initTechnologies}) {
+    // null is not loaded, undefined or value is OK to display
+    const [product, setProduct] = useState(null);
+    const [productVision, setProductVision] = useState(null);
+    const [technologies, setTechnologies] = useState(null);
+    /////////////// all values from this inputs will be saved as a default after generating subtasks.
+
+    const fetchProduct = async() => {
+      let p = await getValueInStorage('product');
+      if(p === undefined || p === null || isEmpty(p)){ // not stored in storage
+        const currentProject = await fetchCurrentProject();
+        p = currentProject.name;
+      }
+      return p;
+    }
+
+    const fetchProductVision = async() => {
+      let pv = await getValueInStorage('product-vision');
+      if(pv !== undefined && pv !== null && !isEmpty(pv)){ // stored in storage
+        return pv;
+      }
+      return undefined;
+    }
+
+    const fetchTechnologies = async() => {
+      let t = await getValueInStorage('technologies');
+      if(t !== undefined && t !== null && !isEmpty(t)){ // stored in storage
+        return t;
+      }
+      return undefined;
+    }
+
+    const loadDefaultValues = async() => {
+      setProduct(await fetchProduct());
+      setProductVision(await fetchProductVision());
+      setTechnologies(await fetchTechnologies());
+    };
+
+    useEffect(() => {
+      loadDefaultValues();
+    }, []);
+
+
+
+//    document.getElementById('product-vision-input').value = productVision;
+//    document.getElementById('product-input').value = product;
+//    document.getElementById('technologies-input').value = technologies;
+
+    //////////// DO not display 'submit' button until all values will be downloaded
+
+
+
     return (
       <>
         {/* Input fields */}
@@ -268,19 +328,49 @@ export default function GenerateSubtasksPage(){
             {/* Product */}
             <div className={"row mb-1"}>
               <label htmlFor="product-input" className="col-2 text-end">Product:</label>
-              <input type="text" className="form-control col mb-2" id="product-input"/>
+              {product === null ? (
+                <input type="text" className="form-control col mb-2" id="product-input" value={"Loading..."} disabled/>
+              ) : (
+                <>
+                  {product === undefined ? (
+                    <input type="text" className="form-control col mb-2" id="product-input"/>
+                  ) : (
+                    <input type="text" className="form-control col mb-2" id="product-input" value={product}/>
+                  )}
+                </>
+              )}
             </div>
 
             {/* Product vision */}
             <div className={"row mb-1"}>
               <label htmlFor="product-vision-input" className="col-2 text-end">Product vision:</label>
-              <textarea className="form-control col mb-2" id="product-vision-input" rows="3"/>
+              {productVision === null ? (
+                <textarea className="form-control col mb-2" id="product-vision-input" rows="3" value={"Loading..."} disabled/>
+              ) : (
+                <>
+                  {productVision === undefined ? (
+                    <textarea className="form-control col mb-2" id="product-vision-input" rows="3"/>
+                  ) : (
+                    <textarea className="form-control col mb-2" id="product-vision-input" rows="3" value={productVision}/>
+                  )}
+                </>
+              )}
             </div>
 
             {/* Technologies used */}
             <div className={"row mb-1"}>
               <label htmlFor="technologies-input" className="col-2 text-end">Technologies used:</label>
-              <textarea className="form-control col mb-2" id="technologies-input" rows="3"/>
+              {technologies === null ? (
+                <textarea className="form-control col mb-2" id="technologies-input" rows="3" value={"Loading..."} disabled/>
+              ) : (
+                <>
+                  {technologies === undefined ? (
+                    <textarea className="form-control col mb-2" id="technologies-input" rows="3"/>
+                  ) : (
+                    <textarea className="form-control col mb-2" id="technologies-input" rows="3" value={technologies}/>
+                  )}
+                </>
+              )}
             </div>
 
             {/* Max numer of subtasks to generate */}
@@ -289,18 +379,21 @@ export default function GenerateSubtasksPage(){
               <input id="max-subtasks-number-input" type="number" min={1} step={1} defaultValue={1} className="form-control col"/>
             </div>
           </div>
+
+          {/* Submit */}
+          {product !== null && productVision !== null && technologies !== null && (
+            <div className={"row justify-content-center mt-1"}>
+              <div className="col-2 text-center">
+                <input type="submit" value={"Generate!"} className={"btn btn-success form-control"}/>
+              </div>
+            </div>
+          )}
         </form>
       </>
     );
   }
 
 
-}
-
-function HelloWorld(){
-  return(
-    <h1>Hello world</h1>
-  );
 }
 
 

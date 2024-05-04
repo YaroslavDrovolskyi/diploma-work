@@ -1,4 +1,10 @@
-import {requestJira} from "@forge/bridge";
+import {requestJira, view} from "@forge/bridge";
+
+
+///////////////////////////////// This file can be named 'api_requests'
+//// file with Gemini requests can be named 'gemini_requests'
+
+
 
 /*
 A couple of sentences about pagination: https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/#pagination
@@ -76,3 +82,13 @@ export const fetchAllStoriesTasksForBoard = async (boardId) => {
 We can't fetch list of items using Jira Expression API and, accordingly, specify criteria;
 because it does not allow to get list of data.
  */
+
+
+
+export const fetchCurrentProject = async() => {
+  const context = await view.getContext();
+  const projectId = context.extension.project.id;
+
+  const response = await requestJira(`/rest/api/3/project/${projectId}`);
+  return await response.json();
+}

@@ -63,6 +63,16 @@ export const getGeminiAnswerJs = async() => {
 
 
 /**
+ * Check if given object `obj` is empty (has 0 fields)
+ * @param obj
+ * @return {boolean}
+ */
+export const isEmpty = (obj) => {
+  return Object.keys(obj).length === 0;
+}
+
+
+/**
  * Deletes all formatting from Jira Wiki markup-formatted string. For example, \*\*text** will be converted to text.
  * <br/>
  * Also replaces each sequence of whitespace characters (only if it has at least one newline (\n) character) with '. '.
