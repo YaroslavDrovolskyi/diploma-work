@@ -161,3 +161,27 @@ const wikiToMarkdown = (str) => {
 export const replaceNewlines = (str) => {
   return str.replaceAll(new RegExp('\\.?\\s*\\n+\\s*', 'g'), ". ");
 }
+
+
+/**
+ * Check if object contains each of given **`field`** and if each such field has given **`type`**.
+ *
+ * Available types: `boolean`, `number`, `string`, `object`, `undefined`.
+ *
+ * @param obj is object to check
+ * @param fieldsAndTypes is array of objects `{field, type}`. `field` and `type` are strings.
+ */
+export const checkFieldsValidity = (obj, fieldsAndTypes) => {
+  try{
+    // for each {field, type} check if obj.field exists and if type(obj.field) === type
+    for(const {field, type} of fieldsAndTypes){
+      if(!Object.hasOwn(obj, field) || (typeof obj[field] !== type)){
+        return false;
+      }
+    }
+    return true;
+  }
+  catch{ // handle all null-valued addressing (usually arising when corresponding field isn't in object)
+    return false;
+  }
+}

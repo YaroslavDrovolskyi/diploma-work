@@ -1,4 +1,3 @@
-import file from "../pages/some.hbs";
 
 /**
  * Reads text of file.

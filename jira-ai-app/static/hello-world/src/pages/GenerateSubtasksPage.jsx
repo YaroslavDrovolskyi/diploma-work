@@ -37,6 +37,7 @@ import {createGenerateSubtasksPrompt, readFile, replaceSubstrings} from "../requ
 import {replaceNewlines} from '../requests/helpers.js';
 import file from "./some.hbs";
 import {generateSubtasksForIssue} from "../requests/gemini_requests";
+import ErrorComponent from "./ErrorComponent";
 
 /**
  * Deletes from DOM all children of given `parent` element
@@ -62,6 +63,7 @@ function deleteChildren(parent) {
 
 export default function GenerateSubtasksPage(){
   const [boards, setBoards] = useState(null);
+  let selectedIssue = null;
 
   const onBoardSelected = async(event) => {
     event.preventDefault();
@@ -176,7 +178,7 @@ export default function GenerateSubtasksPage(){
 
   // The basis of whole page
   return(
-    <>
+    <div className={"p-2 pb-5"}>
       {boards == null ? (
         <LoadingComponent/>
       ) : (
@@ -188,7 +190,7 @@ export default function GenerateSubtasksPage(){
 
       <div id={"display-generated-subtasks-component-parent"}>
       </div>
-    </>
+    </div>
   );
 
 
@@ -419,16 +421,10 @@ export default function GenerateSubtasksPage(){
     const [answer, setAnswer] = useState(null);
 
     const loadData = async() => {
-      const ans = await generateSubtasksForIssue(prompt);
-      setAnswer(ans);
-
-//      console.log(ans);
-      ////////////////////////////// NEED to test if fields are saved in storage; see prompt and raw result
+      setAnswer(await generateSubtasksForIssue(prompt));
 
 
     };
-
-//    console.log(prompt);
 
     useEffect(() => {
       loadData();
@@ -443,20 +439,54 @@ export default function GenerateSubtasksPage(){
     //// NEED also get number of max tokens of model
     
     // When rendering ansewrs, can NOT render objects that haven't some fieleds.
-    // NEED to create funtion that check ii  fields id not undefined and not null
+    // NEED to create function that check ii  fields id not undefined and not null
+
+    // if answer not loaded yet
+    if(answer === null){
+      return(
+        <LoadingComponent/>
+      );
+    }
+
+    if(!answer.ok){
+      return(
+        <ErrorComponent errorMessage={answer.errorMessage}/>
+      )
+    }
+
+    const subtasks = answer.answer;
+
+    if(subtasks.length === 0){
+      return(
+        <>
+          <div className={"container"}>
+            <h1 className={"text-center "}>No subtasks generated</h1>
+            <p className={"text-center mt-5 mb-5"}>No subtasks was generated. Try again.</p>
+          </div>
+        </>
+      )
+    }
+
     return(
       <>
-        {answer === null ? (
-          <>
-            <LoadingComponent/>
-          </>
-        ) : (
-          <>
-            <p><b>Prompt: </b> {prompt}</p>
-            <p><b>Answer: </b> {JSON.stringify(answer)}</p>
-          </>
+        <div className={"container mb-3"}>
+          <div className={"row"}>
+            <div className={"col"}>
+              {subtasks.map((subtask) => (
 
-        )}
+                <div className={"row mb-3 border border-2 rounded"}>
+                  <div className="col-1">
+                  </div>
+                  <div className="col">
+                    <p className={"mb-0"}><b>Summary:</b> {subtask.task}</p>
+                    <p className={"mb-0"}><b>Description:</b> {subtask.description}</p>
+                  </div>
+                </div>
+
+              ))}
+            </div>
+          </div>
+        </div>
       </>
 
     )
