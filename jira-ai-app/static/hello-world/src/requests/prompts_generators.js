@@ -1,3 +1,5 @@
+import file from "../pages/some.hbs";
+
 /**
  * Reads text of file.
  * Source: [https://stackoverflow.com/a/64788876](https://stackoverflow.com/a/64788876)
@@ -39,7 +41,7 @@ export const replaceSubstrings = (str, replacementMap) => {
  * @param tasks list (`\n`-separated) of subtasks that user story already has. (`summary. description`).
  * @param task_count is number
  */
-export const createGenerateSubtasksPrompt = (
+export const createGenerateSubtasksPrompt = async (
   product,
   product_vision,
   technologies,
@@ -48,5 +50,18 @@ export const createGenerateSubtasksPrompt = (
   tasks,
   task_count
 ) => {
+  let file = require('../prompts_templates/generate-tasks.hbs');
+  const promptTemplate = await readFile(file);
 
+  const prompt = replaceSubstrings(promptTemplate, {
+    '{{product}}': product,
+    '{{product_vision}}': product_vision,
+    '{{technologies}}': technologies,
+    '{{user_story_name}}': user_story_name,
+    '{{user_story_description}}': user_story_description,
+    '{{tasks}}': tasks,
+    '{{task_count}}': task_count
+  });
+
+  return prompt;
 }

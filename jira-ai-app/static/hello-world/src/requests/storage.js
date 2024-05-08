@@ -27,3 +27,12 @@ export const getValueInStorage = async(key) => {
 export const deleteValueInStorage = async(key) => {
   return await invoke('deleteValueInStorage', {key: key});
 }
+
+
+/**
+ * Storage keys:
+ - product
+ - product-vision
+ - technologies
+ *
+ */

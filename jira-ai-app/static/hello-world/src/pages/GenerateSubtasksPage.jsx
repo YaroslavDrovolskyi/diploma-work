@@ -33,8 +33,10 @@ import {invoke, view} from "@forge/bridge";
 import {convertJiraWikiMarkupToPlainText, isEmpty} from "../requests/helpers.js";
 import ReactDOM from "react-dom";
 import LoadingComponent from "./LoadingComponent";
-import {readFile, replaceSubstrings} from "../requests/prompts_generators";
+import {createGenerateSubtasksPrompt, readFile, replaceSubstrings} from "../requests/prompts_generators";
+import {replaceNewlines} from '../requests/helpers.js';
 import file from "./some.hbs";
+import {generateSubtasksForIssue} from "../requests/gemini_requests";
 
 /**
  * Deletes from DOM all children of given `parent` element
@@ -93,28 +95,68 @@ export default function GenerateSubtasksPage(){
       console.log(`Selected issue with ID = ${checkedRadiobtn.value}`); /////////////////////////
       alert(`Selected issue with ID = ${checkedRadiobtn.value}`); ///////////////////////////////
 
-      const issue = await fetchIssue('TP-15'); ////////////////////
-//      console.log(JSON.stringify(issue)); /////////////////
+      // display loading of subtasks generating
+      let parent = document.getElementById('display-generated-subtasks-component-parent'); ////////
+      ReactDOM.render(<LoadingComponent />, parent); ///////////////////////
 
-      //////// test rendering .hbs file
+      // get data from input fields
 
-//      import file from './some.hbs';
+      // values of product, productVision and technologies inputs won't be 'Loading...',
+      // because form submission becomes possible only after default data is downloaded
+      const productInput = document.getElementById("product-input");
+      const product = productInput.value;
 
-//      console.log(renderedString);
-      let file = require('./some.hbs');
-      const text = await readFile(file);
-      console.log(`Text: ${text}`);
-      const convertedText = replaceSubstrings(text, {'{{test1}}': '1', '{{test2}}': '2'});
-      console.log(`Converted Text: ${convertedText}`);
+      const productVisionInput = document.getElementById("product-vision-input");
+      const productVision = replaceNewlines(productVisionInput.value);
 
-      // issue.fields.subtasks.[i].fields.summary
+      const technologiesInput = document.getElementById("technologies-input");
+      const technologies = replaceNewlines(technologiesInput.value);
+
+      const maxSubtasksNumberInput= document.getElementById("max-subtasks-number-input");
+      const maxSubtasksNumber = maxSubtasksNumberInput.value;
+
+      const issueId = checkedRadiobtn.value;
+      const issue = await fetchIssue(issueId);
+
+      let issueName = issue?.fields?.summary; // summary is not formatted using Jira wiki
+      if(issueName === undefined ||issueName === null){
+        issueName = '';
+      }
+
+      let issueDescription = issue?.fields?.description;
+      issueDescription = ((issueDescription !== undefined) && (issueDescription !== null))
+        ? convertJiraWikiMarkupToPlainText(issueDescription)
+        : '';
+
+      // delimit subtasks by \n
+      let subtasksString = '';
+      if(issue.fields.subtasks !== undefined && issue.fields.subtasks !== null){
+        for (const subtask of issue.fields.subtasks){
+          subtasksString += subtask.fields?.summary; // summary always without formatting
+          if(subtask.fields.description !== undefined && subtask.fields.description !== null){
+            subtasksString += '. ' + convertJiraWikiMarkupToPlainText(subtask.fields.description);
+          }
+          subtasksString += '.\n';
+        }
+      }
+
+
+      // generate prompt
+      const prompt = await createGenerateSubtasksPrompt(product, productVision,
+        technologies, issueName, issueDescription, subtasksString, maxSubtasksNumber);
+
+      // save fields in storage
+      await setValueInStorage('product', product);
+      await setValueInStorage('product-vision', productVision);
+      await setValueInStorage('technologies', technologies);
+
+
+      // render generated subtasks
+      // pass prompt to other component. That prompt will make request to Gemini, and display result.
+//      let parent = document.getElementById('display-generated-subtasks-component-parent');
+//      ReactDOM.render(<LoadingComponent />, parent);
+      ReactDOM.render(<DisplayGeneratedSubtasksComponent prompt={prompt}/>, parent);
     }
-
-
-    /////////////////////////////////////// NEED to collect all data and call generation.
-    //// values of product/produtVision inputs won't be 'Loading...',
-    // because form submission becomes possible only after default data is downloaded
-
   }
 
 
@@ -144,7 +186,7 @@ export default function GenerateSubtasksPage(){
       <div id={"generation-parameters-inputs-component-parent"}>
       </div>
 
-      <div id={"generated-subtasks-component-parent"}>
+      <div id={"display-generated-subtasks-component-parent"}>
       </div>
     </>
   );
@@ -310,7 +352,7 @@ export default function GenerateSubtasksPage(){
                   {product === undefined ? (
                     <input type="text" className="form-control col mb-2" id="product-input"/>
                   ) : (
-                    <input type="text" className="form-control col mb-2" id="product-input" value={product}/>
+                    <input type="text" className="form-control col mb-2" id="product-input" defaultValue={product}/>
                   )}
                 </>
               )}
@@ -326,7 +368,7 @@ export default function GenerateSubtasksPage(){
                   {productVision === undefined ? (
                     <textarea className="form-control col mb-2" id="product-vision-input" rows="3"/>
                   ) : (
-                    <textarea className="form-control col mb-2" id="product-vision-input" rows="3" value={productVision}/>
+                    <textarea className="form-control col mb-2" id="product-vision-input" rows="3" defaultValue={productVision}/>
                   )}
                 </>
               )}
@@ -342,7 +384,7 @@ export default function GenerateSubtasksPage(){
                   {technologies === undefined ? (
                     <textarea className="form-control col mb-2" id="technologies-input" rows="3"/>
                   ) : (
-                    <textarea className="form-control col mb-2" id="technologies-input" rows="3" value={technologies}/>
+                    <textarea className="form-control col mb-2" id="technologies-input" rows="3" defaultValue={technologies}/>
                   )}
                 </>
               )}
@@ -353,109 +395,75 @@ export default function GenerateSubtasksPage(){
               <label htmlFor="max-subtasks-number-input" className="col-2 text-end">Max number of subtasks to generate:</label>
               <input id="max-subtasks-number-input" type="number" min={1} step={1} defaultValue={1} className="form-control col"/>
             </div>
+
+            {/* Submit */}
+            {/* DO not display 'Submit' button until all values will be downloaded */}
+            {product !== null && productVision !== null && technologies !== null && (
+              <div className={"row justify-content-center mt-1"}>
+                <div className="col-2 text-center">
+                  <input type="submit" value={"Generate!"} className={"btn btn-success form-control"}/>
+                </div>
+              </div>
+            )}
           </div>
 
 
-          {/* Submit */}
-          {/* DO not display 'Submit' button until all values will be downloaded */}
-          {product !== null && productVision !== null && technologies !== null && (
-            <div className={"row justify-content-center mt-1"}>
-              <div className="col-2 text-center">
-                <input type="submit" value={"Generate!"} className={"btn btn-success form-control"}/>
-              </div>
-            </div>
-          )}
+
         </form>
       </>
     );
   }
 
 
-  function GeneratedSubtasksComponent({subtasks}){
+  function DisplayGeneratedSubtasksComponent({prompt}){
+    const [answer, setAnswer] = useState(null);
+
+    const loadData = async() => {
+      const ans = await generateSubtasksForIssue(prompt);
+      setAnswer(ans);
+
+//      console.log(ans);
+      ////////////////////////////// NEED to test if fields are saved in storage; see prompt and raw result
+
+
+    };
+
+//    console.log(prompt);
+
+    useEffect(() => {
+      loadData();
+    }, []);
+
+
+
+    // NEED to handle when list is empty, or no valid items in list. Or when entire response is not valid.
+    // Possible procedure: go through list, filter object that has necessary attributes.
+    // also need to handle response status
+    // can return array from GeminiAPI-wrapper function: [true/false, answer/error]
+    //// NEED also get number of max tokens of model
+    
+    // When rendering ansewrs, can NOT render objects that haven't some fieleds.
+    // NEED to create funtion that check ii  fields id not undefined and not null
     return(
       <>
-        <h1>GeneratedSubtasksComponent</h1>
+        {answer === null ? (
+          <>
+            <LoadingComponent/>
+          </>
+        ) : (
+          <>
+            <p><b>Prompt: </b> {prompt}</p>
+            <p><b>Answer: </b> {JSON.stringify(answer)}</p>
+          </>
+
+        )}
       </>
+
     )
 
   }
 }
 
-
-/*
-
-<div className={"row mb-3"}>
-            <label className="col-2 text-end">Name</label>
-            <input name="name" type="text" required={true} pattern={"^(?!\\s*$).+"} maxLength={40} className={"form-control col"}/>
-          </div>
-
-          <div className={"row mb-3"}>
-            <label className="col-2 text-end">Variety</label>
-            <input name="variety" type="text" required={true} pattern={"^(?!\\s*$).+"} maxLength={40} className={"form-control col"}/>
-          </div>
-
-
-
-          <div className={"row mb-3"}>
-            <label className="col-2 text-end">Price</label>
-            <input name="price" type="number" required={true} min={0.01} step={0.01} defaultValue={100.00} className={"form-control col"}/>
-          </div>
-
-
-          <>
-            {(plantingMaterialType === "TREE_SEEDLING" || plantingMaterialType === "BUSH_SEEDLING") &&
-              <>
-                <div className={"row mb-3"}>
-                  <label className="col-2 text-end">Purpose type</label>
-                  <select name="purpose-type" className={"form-select col"}>
-                    <option value="DECORATIVE">Decorative</option>
-                    <option value="FRUITING">Fruiting</option>
-                  </select>
-                </div>
-
-                <div className={"row mb-3"}>
-                  <label className="col-2 text-end">Production year</label>
-                  <input name="production-year" type="number" required={true} min={2000} max={new Date().getFullYear()} step={1}
-                         defaultValue={new Date().getFullYear()} className={"form-control col"}/>
-                </div>
-
-                <div className={"row mb-3"}>
-                  <label className="col-2 text-end">Root system</label>
-                  <select name="root-system-type" className={"form-select col"}>
-                    <option value="OPEN">Open</option>
-                    <option value="CLOSED">Closed</option>
-                  </select>
-                </div>
-              </>}
-          </>
-
-
-          <>
-            {(plantingMaterialType === "FLOWER_SEEDLING") &&
-              <>
-                <div className={"row mb-3"}>
-                  <label className="col-2 text-end">Longevity type</label>
-                  <select name="longevity-type" className={"form-select col"}>
-                    <option value="ONE_YEAR">One-year</option>
-                    <option value="TWO_YEARS">Two-years</option>
-                    <option value="MANY_YEARS">Many-years</option>
-                  </select>
-                </div>
-
-                <div className={"row mb-3"}>
-                  <label className="col-2 text-end">Reproduction type</label>
-                  <select name="reproduction-type" className={"form-select col"}>
-                    <option value="BULBOUS">Bulbous</option>
-                    <option value="RHIZOME">Rhizome</option>
-                    <option value="SEED">Seed</option>
-                  </select>
-                </div>
-              </>
-            }
-          </>
-
-
- */
 
 /*
   - How to get a selected radiobutton: https://stackoverflow.com/a/15839451

@@ -93,7 +93,11 @@ export const fetchCurrentProject = async() => {
   return await response.json();
 }
 
-
+/**
+ * Fetches issue, in particular with given fields: ID, key, issuetype, status, summary, description, subtasks
+ * @param issueIdOrKey
+ * @return {Promise<any>}
+ */
 export const fetchIssue = async(issueIdOrKey) => {
   const response = await requestJira(`/rest/agile/1.0/issue/${issueIdOrKey}?fields=id,key,issuetype,status,summary,description,subtasks`);
 
