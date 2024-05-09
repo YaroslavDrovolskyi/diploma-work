@@ -1,4 +1,4 @@
-import {createSubtask, deleteIssue, fetchAllBoards} from "../requests/template_requests";
+import {createSubtask, deleteIssue, fetchAllBoardsForProject} from "../requests/template_requests";
 import {useEffect} from "react";
 
 export default function Home(){

@@ -1,26 +1,15 @@
 
 /*
 
-Lower, put list of generated subtasks with checkbox near each one. Lower put "Add picked subtasks".
-Near each generated subtask put button "add" that will add this task. and make this button inactive with value="added" when added
-after adding also need to add Key and ID to the block of created subtask
-also can add 'Delete' button (in case user ahs changed his mind)
-
 submit changes to data in storage ONLY when form-generate-subtasks is submitted
 
-Make button re-generate (instead, user can use "generate")
-
-
-for existing tasks ({{task}}) we provide list (\n-separated) with title and description of user story
-
-
-LEFT to DO: implement deleteSubtask() and add onBtnClicked() for each generated subtask;
+for existing tasks ({{task}} parameter) we provide list (\n-separated) with title and description
  */
 
 import {useEffect, useState} from "react";
 import {
   createSubtask, deleteIssue,
-  fetchAllBoards,
+  fetchAllBoardsForProject,
   fetchAllStoriesTasksForBoard,
   fetchCurrentProject,
   fetchIssue
@@ -178,6 +167,8 @@ export default function GenerateSubtasksPage(){
     idField.innerHTML = createdSubtask.id;
     keyField.innerHTML = createdSubtask.key;
 
+    console.log(`Created subtask with ID = ${createdSubtask.id}`);
+
     // enable 'delete' button
     document.getElementById(`generated-subtask-delete-button-${subtaskIndex}`).disabled = false;
   }
@@ -197,7 +188,7 @@ export default function GenerateSubtasksPage(){
 
     if(subtaskId !== undefined && subtaskId !== null && subtaskId !== ''){
       await deleteIssue(subtaskId);
-      console.log('Delete really');
+      console.log(`Deleted subtask with ID = ${subtaskId}`);
     }
 
     idField.innerHTML = '';
@@ -211,7 +202,7 @@ export default function GenerateSubtasksPage(){
 
 
   const loadData = async() => {
-    setBoards(await fetchAllBoards());
+    setBoards(await fetchAllBoardsForProject());
 
 //    await invoke('setValueInStorage');
 //    console.log(await invoke('getValueInStorage'));
@@ -447,7 +438,7 @@ export default function GenerateSubtasksPage(){
             {/* Submit */}
             {/* DO not display 'Submit' button until all values will be downloaded */}
             {product !== null && productVision !== null && technologies !== null && (
-              <div className={"row justify-content-center mt-1"}>
+              <div className={"row justify-content-center mt-2"}>
                 <div className="col-2 text-center">
                   <input type="submit" value={"Generate!"} className={"btn btn-success form-control"}/>
                 </div>
@@ -507,7 +498,9 @@ export default function GenerateSubtasksPage(){
 
     return(
       <>
+        <h3>Generated issues:</h3>
         <div className={"container mb-3"}>
+          <p>Choose which one you want to add to your project. If you immediately changed your mind, you can delete subtask easily</p>
           <div className={"row"}>
             <div className={"col"}>
 
@@ -517,7 +510,7 @@ export default function GenerateSubtasksPage(){
                 <div className={"row mb-3 border border-2 rounded"}>
 
                   {/* Column for button */}
-                  <div className="col-2 d-flex justify-content-around align-items-center">
+                  <div className="col-2 d-flex flex-row justify-content-around align-items-center">
                     <button id={`generated-subtask-add-button-${index}`}
                             className = {"btn btn-primary"} onClick={onAddGeneratedSubtask}>Add</button>
                     <button id={`generated-subtask-delete-button-${index}`}
@@ -527,20 +520,15 @@ export default function GenerateSubtasksPage(){
                   {/* Column for subtask data */}
                   <div className="col">
                     <div className="row">
+                      <h5 id={`generated-subtask-key-${index}`}>{subtask.key}</h5>
+                    </div>
+
+                    <div className="row">
                       <div className="col-2">
                         <b className={"mb-0"}>ID:</b>
                       </div>
                       <div className="col">
                         <p id={`generated-subtask-id-${index}`} className={"mb-0"}></p>
-                      </div>
-                    </div>
-
-                    <div className="row">
-                      <div className="col-2">
-                        <b className={"mb-0"}>Key:</b>
-                      </div>
-                      <div className="col">
-                        <p id={`generated-subtask-key-${index}`} className={"mb-0"}></p>
                       </div>
                     </div>
 
@@ -578,17 +566,11 @@ export default function GenerateSubtasksPage(){
 
 
 /*
-
-Near each generated subtask put button "add" that will add this task. and make this button inactive with value="added" when added
-after adding also need to add Key and ID to the block of created subtask
-also can add 'Delete' button (in case user ahs changed his mind)
-
- */
-
-
-/*
   - How to get a selected radiobutton: https://stackoverflow.com/a/15839451
   - Get selected item from list: https://stackoverflow.com/a/1085810
+  - Enable/disable button (does not work when button is disabled from HTML-code): https://stackoverflow.com/a/13831737
+  - Get inside value of <p>-tag: https://stackoverflow.com/a/11634081
+  - Get ID of clicked button in onClick() handler: https://stackoverflow.com/a/4825325 (but I used event.target.id)
 
   - Borders in Bootstrap: https://getbootstrap.com/docs/5.0/utilities/borders/
   - Format of checks and radio buttons in Bootstrap: https://getbootstrap.com/docs/5.0/forms/checks-radios/

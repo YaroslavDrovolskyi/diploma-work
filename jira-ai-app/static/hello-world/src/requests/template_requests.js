@@ -11,11 +11,14 @@ A couple of sentences about pagination: https://developer.atlassian.com/cloud/ji
  */
 
 /**
- * Fetches all boards, that the user has permission to view.
+ * Fetches all boards for current project, that the user has permission to view.
+ *
+ * [Details](https://developer.atlassian.com/cloud/jira/software/rest/api-group-board/#api-rest-agile-1-0-board-get)
+ * about API call used, its parameters and returned values
  * @return {Promise<any[]>} array of boards
  */
 // also can set the board type parameter in request; it can be 'simple', 'scrum', 'kanban'
-export const fetchAllBoards = async() => {
+export const fetchAllBoardsForProject = async() => {
   // map is necessary for not duplicating objects if some of them was received more than once
   // due to paging issues (for example shift because of object insertion on server)
   const boards = new Map(); // map of pairs [boardId, board]
@@ -39,13 +42,31 @@ export const fetchAllBoards = async() => {
     }
   }
 
-  return Array.from(boards.values());
+  let boardsArray = Array.from(boards.values());
+
+
+  const context = await view.getContext();
+  const currentProjectId = context.extension.project.id; // is string
+
+  // Filter boards to get ones that belong only to current project
+  // We can't use `projectKeyOrId` API request parameter
+  // as said in https://community.atlassian.com/t5/Jira-questions/Re-Re-API-to-retrieve-list-of-all-boards/qaq-p/1333686/comment-id/613080#M613080
+  // because it considers only "reference to a project" (according to docs), but not fully affiliation
+
+  let boardsArrayForProject = boardsArray.filter((b) =>
+    b.location.projectId === Number(currentProjectId)
+  );
+
+  return boardsArrayForProject;
 }
 
 
 /**
  * Returns all not-DONE issues of type 'Story'/'Task' from a board, for a given board ID.
  * For each issue these fields are fetched: id, key, issuetype, status, summary, description
+ *
+ * [Details](https://developer.atlassian.com/cloud/jira/software/rest/api-group-board/#api-rest-agile-1-0-board-boardid-issue-get)
+ * aboutI API call, its parameters and returned values
  * @param boardId
  * @return {Promise<any[]>} array of issues
  */
@@ -206,6 +227,5 @@ export const deleteIssue = async(issueIdOrKey) => {
     method: 'DELETE'
   });
 
-  console.log(`Response: ${response.status} ${response.statusText}`);
   return response;
 }
