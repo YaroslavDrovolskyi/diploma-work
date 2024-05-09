@@ -10,8 +10,8 @@ modules:
           route: '/'
         - title: Generate subtasks
           route: '/generate-subtasks'
-        - title: Page 2
-          route: '/page-2'
+        - title: Refinement of User stories and Tasks
+          route: '/refinement'
         - title: Page 3
           route: '/page-3'
   function:

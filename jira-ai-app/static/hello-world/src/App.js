@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import GenerateSubtasksPage from "./pages/GenerateSubtasksPage";
 import Page2 from "./pages/Page2";
 import Page3 from "./pages/Page3";
+import RefinementPage from "./pages/RefinementPage";
 
 // page that defines routing
 
@@ -55,7 +56,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/generate-subtasks" element={<GenerateSubtasksPage />}/>
-              <Route path="/page-2" element={<Page2 />}/>
+              <Route path="/refinement" element={<RefinementPage />}/>
               <Route path="/page-3" element={<Page3 />}/>
             </Routes>
           </Router>
