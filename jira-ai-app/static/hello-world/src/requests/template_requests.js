@@ -103,3 +103,109 @@ export const fetchIssue = async(issueIdOrKey) => {
 
   return await response.json();
 }
+
+//
+/**
+ * [Details](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-types/#api-rest-api-3-issuetype-project-get)
+ * about used API call and returned object.
+ * @param projectId
+ * @return {Promise<any>} Array (without paging) of all issue types in project
+ */
+export const fetchAllIssueTypesForProject = async(projectId) => {
+  const response = await requestJira(`/rest/api/3/issuetype/project?projectId=${projectId}`, {
+    headers: {
+      'Accept': 'application/json'
+    }
+  });
+
+  return await response.json();
+}
+
+
+
+/**
+ * Creates subtask as a child of Issue with given `parentIssueId`.
+ *
+ * [Details](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-post)
+ * about used API call, parameters and returned object
+ * @param parentIssueId is ID of parent issue (Story/Task)
+ * @param subtask is `{task, description}` subtask object, that will be created. Note, that `task` is summary.
+ * @return {Promise<void>} `{id, key}` object for created Subtask,
+ * but returns null if project does not have issueType with name "Subtask"
+ */
+export const createSubtask = async(parentIssueId, subtask) => {
+  // get current project
+  const context = await view.getContext();
+  const currentProjectId = context.extension.project.id;
+
+  // find IssueType object that correspond to "Subtask" type, in order to get "Subtask"'s ID
+  // assumed that issueType "Subtask" always exist
+  const allIssueTypes = await fetchAllIssueTypesForProject(currentProjectId);
+  const subtaskIssueType = allIssueTypes.find((t) => (t.name === 'Subtask') && (t.subtask === true));
+  if(subtaskIssueType === undefined || subtaskIssueType === null){
+    return null;
+  }
+  const issueTypeId = subtaskIssueType.id;
+
+  const bodyData = {
+    fields: {
+      description: {
+        content: [
+          {
+            content: [
+              {
+                text: subtask.description,
+                type: "text"
+              }
+            ],
+            type: "paragraph"
+          }
+        ],
+        type: "doc",
+        version: 1
+      },
+      issuetype: {
+        id: issueTypeId
+      },
+      parent: {
+        id: `${parentIssueId}`
+      },
+
+      project: {
+        id: currentProjectId
+      },
+
+      summary: subtask.task
+    }
+  };
+
+  const response = await requestJira(`/rest/api/3/issue`, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(bodyData)
+  });
+
+  return(await response.json());
+}
+
+
+/**
+ * Deletes issue (Story/Task/Subtask) with given ID or key.
+ * Note, that this method can't delete issue that has at least one child subtask
+ *
+ * [Details](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-delete)
+ * about used API call
+ * @param issueIdOrKey
+ * @return
+ */
+export const deleteIssue = async(issueIdOrKey) => {
+  const response = await requestJira(`/rest/api/3/issue/${issueIdOrKey}`, {
+    method: 'DELETE'
+  });
+
+  console.log(`Response: ${response.status} ${response.statusText}`);
+  return response;
+}

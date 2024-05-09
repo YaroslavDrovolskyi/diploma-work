@@ -1,28 +1,25 @@
 
 /*
-+ Create List (with radio buttons) with all available user stories and tasks
-+ (take not-DONE user stories from backlog (add section), and from each unfinished sprint (add section))
-+ For each user story show: ID, Key, issue type, status, summary and description
-
-+ Below, Put rest of input fields
-+ Lower, put button "Generate"
 
 Lower, put list of generated subtasks with checkbox near each one. Lower put "Add picked subtasks".
-Near each generated subtask put button "add" that will add this task
+Near each generated subtask put button "add" that will add this task. and make this button inactive with value="added" when added
+after adding also need to add Key and ID to the block of created subtask
+also can add 'Delete' button (in case user ahs changed his mind)
 
 submit changes to data in storage ONLY when form-generate-subtasks is submitted
 
 Make button re-generate (instead, user can use "generate")
-NEED to delete \n from user input
 
 
 for existing tasks ({{task}}) we provide list (\n-separated) with title and description of user story
 
-NEED to create request to get all subtasks (also DONE) for some issue
+
+LEFT to DO: implement deleteSubtask() and add onBtnClicked() for each generated subtask;
  */
 
 import {useEffect, useState} from "react";
 import {
+  createSubtask, deleteIssue,
   fetchAllBoards,
   fetchAllStoriesTasksForBoard,
   fetchCurrentProject,
@@ -63,7 +60,7 @@ function deleteChildren(parent) {
 
 export default function GenerateSubtasksPage(){
   const [boards, setBoards] = useState(null);
-  let selectedIssue = null;
+  let selectedIssueId = null;
 
   const onBoardSelected = async(event) => {
     event.preventDefault();
@@ -71,10 +68,13 @@ export default function GenerateSubtasksPage(){
     const selector = document.getElementById("select-board");
     const boardId = selector.value;
 
+    // display loading of issues
+    let parent = document.getElementById('generation-parameters-inputs-component-parent');
+    ReactDOM.render(<LoadingComponent />, parent);
+
     let issues = await fetchAllStoriesTasksForBoard(boardId);
 
     // render inputs for generation parameters
-    let parent = document.getElementById('generation-parameters-inputs-component-parent');
     /*
       If the React element was previously rendered into container,
       this will perform an update on it and only mutate the DOM as necessary to reflect the latest React element.
@@ -94,8 +94,8 @@ export default function GenerateSubtasksPage(){
       alert('No issue is selected');
     }
     else{
-      console.log(`Selected issue with ID = ${checkedRadiobtn.value}`); /////////////////////////
-      alert(`Selected issue with ID = ${checkedRadiobtn.value}`); ///////////////////////////////
+      selectedIssueId = checkedRadiobtn.value;
+      console.log(`Selected issue with ID = ${selectedIssueId}`); /////////////////////////
 
       // display loading of subtasks generating
       let parent = document.getElementById('display-generated-subtasks-component-parent'); ////////
@@ -117,8 +117,7 @@ export default function GenerateSubtasksPage(){
       const maxSubtasksNumberInput= document.getElementById("max-subtasks-number-input");
       const maxSubtasksNumber = maxSubtasksNumberInput.value;
 
-      const issueId = checkedRadiobtn.value;
-      const issue = await fetchIssue(issueId);
+      const issue = await fetchIssue(selectedIssueId);
 
       let issueName = issue?.fields?.summary; // summary is not formatted using Jira wiki
       if(issueName === undefined ||issueName === null){
@@ -159,6 +158,53 @@ export default function GenerateSubtasksPage(){
 //      ReactDOM.render(<LoadingComponent />, parent);
       ReactDOM.render(<DisplayGeneratedSubtasksComponent prompt={prompt}/>, parent);
     }
+  }
+
+
+  const onAddGeneratedSubtask = async(event) => {
+    const addButtonId = event.target.id;
+    const subtaskIndex = addButtonId.replace(/[^0-9]/g, ''); // delete all non-numbers
+
+    // disable 'add' button
+    document.getElementById(`generated-subtask-add-button-${subtaskIndex}`).disabled = true;
+
+    let summary = document.getElementById(`generated-subtask-summary-${subtaskIndex}`).innerHTML;
+    let description = document.getElementById(`generated-subtask-description-${subtaskIndex}`).innerHTML;
+
+    let createdSubtask = await createSubtask(selectedIssueId, {task: summary, description: description});
+
+    let idField = document.getElementById(`generated-subtask-id-${subtaskIndex}`);
+    let keyField = document.getElementById(`generated-subtask-key-${subtaskIndex}`);
+    idField.innerHTML = createdSubtask.id;
+    keyField.innerHTML = createdSubtask.key;
+
+    // enable 'delete' button
+    document.getElementById(`generated-subtask-delete-button-${subtaskIndex}`).disabled = false;
+  }
+
+  const onDeleteGeneratedSubtask = async(event) => {
+    const deleteButtonId = event.target.id;
+    const subtaskIndex = deleteButtonId.replace(/[^0-9]/g, ''); // delete all non-numbers
+
+
+    // disable 'delete' button
+    document.getElementById(`generated-subtask-delete-button-${subtaskIndex}`).disabled = true;
+
+    let idField = document.getElementById(`generated-subtask-id-${subtaskIndex}`);
+    let keyField = document.getElementById(`generated-subtask-key-${subtaskIndex}`);
+
+    const subtaskId = idField.innerHTML;
+
+    if(subtaskId !== undefined && subtaskId !== null && subtaskId !== ''){
+      await deleteIssue(subtaskId);
+      console.log('Delete really');
+    }
+
+    idField.innerHTML = '';
+    keyField.innerHTML = '';
+
+    // enable 'add' button
+    document.getElementById(`generated-subtask-add-button-${subtaskIndex}`).disabled = false;
   }
 
 
@@ -431,15 +477,7 @@ export default function GenerateSubtasksPage(){
     }, []);
 
 
-
-    // NEED to handle when list is empty, or no valid items in list. Or when entire response is not valid.
-    // Possible procedure: go through list, filter object that has necessary attributes.
-    // also need to handle response status
-    // can return array from GeminiAPI-wrapper function: [true/false, answer/error]
-    //// NEED also get number of max tokens of model
-    
-    // When rendering ansewrs, can NOT render objects that haven't some fieleds.
-    // NEED to create function that check ii  fields id not undefined and not null
+    /* Display results */
 
     // if answer not loaded yet
     if(answer === null){
@@ -461,7 +499,7 @@ export default function GenerateSubtasksPage(){
         <>
           <div className={"container"}>
             <h1 className={"text-center "}>No subtasks generated</h1>
-            <p className={"text-center mt-5 mb-5"}>No subtasks was generated. Try again.</p>
+            <p className={"text-center mt-1 mb-5"}>No subtasks was generated. Try again.</p>
           </div>
         </>
       )
@@ -472,15 +510,59 @@ export default function GenerateSubtasksPage(){
         <div className={"container mb-3"}>
           <div className={"row"}>
             <div className={"col"}>
-              {subtasks.map((subtask) => (
+
+              {/* List of subtasks */}
+              {subtasks.map((subtask, index) => (
 
                 <div className={"row mb-3 border border-2 rounded"}>
-                  <div className="col-1">
+
+                  {/* Column for button */}
+                  <div className="col-2 d-flex justify-content-around align-items-center">
+                    <button id={`generated-subtask-add-button-${index}`}
+                            className = {"btn btn-primary"} onClick={onAddGeneratedSubtask}>Add</button>
+                    <button id={`generated-subtask-delete-button-${index}`}
+                            className = {"btn btn-danger"} onClick={onDeleteGeneratedSubtask}>Delete</button>
                   </div>
+
+                  {/* Column for subtask data */}
                   <div className="col">
-                    <p className={"mb-0"}><b>Summary:</b> {subtask.task}</p>
-                    <p className={"mb-0"}><b>Description:</b> {subtask.description}</p>
+                    <div className="row">
+                      <div className="col-2">
+                        <b className={"mb-0"}>ID:</b>
+                      </div>
+                      <div className="col">
+                        <p id={`generated-subtask-id-${index}`} className={"mb-0"}></p>
+                      </div>
+                    </div>
+
+                    <div className="row">
+                      <div className="col-2">
+                        <b className={"mb-0"}>Key:</b>
+                      </div>
+                      <div className="col">
+                        <p id={`generated-subtask-key-${index}`} className={"mb-0"}></p>
+                      </div>
+                    </div>
+
+                    <div className="row">
+                      <div className="col-2">
+                        <b className={"mb-0"}>Summary:</b>
+                      </div>
+                      <div className="col">
+                        <p id={`generated-subtask-summary-${index}`} className={"mb-0"}> {subtask.task}</p>
+                      </div>
+                    </div>
+
+                    <div className="row">
+                      <div className="col-2">
+                        <b className={"mb-0"}>Description:</b>
+                      </div>
+                      <div className="col">
+                        <p id={`generated-subtask-description-${index}`} className={"mb-0"}>{subtask.description}</p>
+                      </div>
+                    </div>
                   </div>
+
                 </div>
 
               ))}
@@ -493,6 +575,15 @@ export default function GenerateSubtasksPage(){
 
   }
 }
+
+
+/*
+
+Near each generated subtask put button "add" that will add this task. and make this button inactive with value="added" when added
+after adding also need to add Key and ID to the block of created subtask
+also can add 'Delete' button (in case user ahs changed his mind)
+
+ */
 
 
 /*

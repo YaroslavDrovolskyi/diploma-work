@@ -34,6 +34,7 @@ permissions:
     - read:jira-work
     - read:jira-expressions:jira
     - storage:app
+    - write:jira-work
   external:
     fetch:
       client:
