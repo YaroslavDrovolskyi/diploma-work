@@ -1,3 +1,4 @@
+import file from "../prompts_templates/generate-tasks.hbs";
 
 /**
  * Reads text of file.
@@ -60,6 +61,39 @@ export const createGenerateSubtasksPrompt = async (
     '{{user_story_description}}': user_story_description,
     '{{tasks}}': tasks,
     '{{task_count}}': task_count
+  });
+
+  return prompt;
+}
+
+
+
+/**
+ * Creates prompt for refinement given user story or task.
+ * @param product is plain text without newlines
+ * @param product_vision is plain text without newlines
+ * @param user_story_summary is plain text without newlines
+ * @param user_story_description is plain text without newlines
+ * @param other_user_stories is all other user stories and tasks.
+ * It is JSON string with array of **`{id, summary, description}`** objects.
+ * @return {Promise<string>}
+ */
+export const createIssueRefinementPrompt = async (
+  product,
+  product_vision,
+  user_story_summary,
+  user_story_description,
+  other_user_stories
+) => {
+  let file = require('../prompts_templates/refinement-user-story.hbs');
+  const promptTemplate = await readFile(file);
+
+  const prompt = replaceSubstrings(promptTemplate, {
+    '{{product}}': product,
+    '{{product_vision}}': product_vision,
+    '{{user_story_summary}}': user_story_summary,
+    '{{user_story_description}}': user_story_description,
+    '{{other_user_stories}}': other_user_stories
   });
 
   return prompt;

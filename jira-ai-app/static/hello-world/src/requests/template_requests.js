@@ -69,6 +69,7 @@ export const fetchAllBoardsForProject = async() => {
  * aboutI API call, its parameters and returned values
  * @param boardId
  * @return {Promise<any[]>} array of issues
+ * (issue is **`{id, key, issuetype, status, summary, description, subtasks}`** object)
  */
 export const fetchAllStoriesTasksForBoard = async (boardId) => {
   // map is necessary for not duplicating objects if some of them was received more than once
