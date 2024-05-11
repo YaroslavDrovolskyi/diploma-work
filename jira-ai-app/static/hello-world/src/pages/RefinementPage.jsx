@@ -1,6 +1,6 @@
 import {
   fetchAllBoardsForProject,
-  fetchAllStoriesTasksForBoard,
+  fetchAllNotDoneStoriesTasksForBoard,
   fetchCurrentProject, fetchIssue
 } from "../requests/template_requests";
 import {useEffect, useState} from "react";
@@ -9,7 +9,7 @@ import ReactDOM from "react-dom";
 import {getValueInStorage, setValueInStorage} from "../requests/storage";
 import {convertJiraWikiMarkupToPlainText, isEmpty, replaceNewlines} from "../requests/helpers.js";
 import {createGenerateSubtasksPrompt, createIssueRefinementPrompt} from "../requests/prompts_generators";
-import {generateSubtasksForIssue} from "../requests/gemini_requests";
+import {generateIssueRefinementAdvice, generateSubtasksForIssue} from "../requests/gemini_requests";
 import ErrorComponent from "./ErrorComponent";
 
 export default function RefinementPage(){
@@ -27,7 +27,7 @@ export default function RefinementPage(){
     const selector = document.getElementById("select-board");
     const boardId = selector.value;
 
-    let issues = await fetchAllStoriesTasksForBoard(boardId);
+    let issues = await fetchAllNotDoneStoriesTasksForBoard(boardId);
 
     // render inputs for generation parameters
     ReactDOM.render(<GenerationParametersInputsComponent issues={issues}/>, parent);
@@ -35,7 +35,6 @@ export default function RefinementPage(){
 
 
   // issues is all issues (user stories and tasks) that displays.
-  // NEED to filter this array (from current issue) and transform it to required format
   const onGenerationParamsSubmitted = async(event, issues) => {
     event.preventDefault();
 
@@ -78,6 +77,12 @@ export default function RefinementPage(){
 
       // find selected issue
       const selectedIssue = issues.find((i) => i.id === selectedIssueId)
+      const selectedIssueFormatted = {
+        id: selectedIssue.id,
+        key: selectedIssue.key,
+        summary: selectedIssue?.fields?.summary,
+        description: selectedIssue?.fields?.description
+      };
 
       let issueSummary = selectedIssue?.fields?.summary; // summary is not formatted using Jira wiki, and does not have any \n
       if(issueSummary === undefined || issueSummary === null){
@@ -108,9 +113,35 @@ export default function RefinementPage(){
 
 
       // render generated advice
-      // pass prompt to other component. That prompt will make request to Gemini, and display result.
-      ReactDOM.render(<DisplayRefinementAdviceComponent prompt={prompt}/>, parent);
+      // pass prompt to other component. That prompt will be sent to Gemini.
+      // pass otherIssues to check if ID, returned by Gemini, is of existing issue
+      // pass selectedIssue for further logic
+      ReactDOM.render(<DisplayRefinementAdviceComponent prompt={prompt} selectedIssue={selectedIssueFormatted}
+      otherIssues={otherIssuesFormatted}/>, parent);
     }
+  }
+
+
+  const onSplitAdviceFormSubmitted = async(event) => {
+    event.preventDefault();
+
+   /////////////////////////// {/* When apply actions, need to take values from inputs, not from memory */}
+
+    /*
+    {/* NEED to make remark about what will be with subtasks of selected issue (after implementation)
+                The best variant is to change parent of each generated subtask into first generated part }
+     */
+
+
+    /*
+    Треба зробити так, щоб не можна було обрати менше однієї part для генерації.
+    Також щоб не можна було що полеsummary пустий.
+     */
+  }
+
+
+  const onMergeAdviceFormSubmitted = async(event) => {
+    event.preventDefault();
   }
 
 
@@ -322,12 +353,21 @@ export default function RefinementPage(){
   }
 
 
-  ///////////////////////////////////////////////////////////// NEED to edit this function
-  function DisplayRefinementAdviceComponent({prompt}){
-    const [answer, setAnswer] = useState(null);
+  /**
+   * Make request to Gemini and display result.
+   *
+   * Note, that field `description` in inputs parameters is FORMATTED with Jira Wiki.
+   * @param prompt is prompt for Gemini
+   * @param selectedIssue is issue under refinement (object `{id, key, summary, description}`)
+   * @param otherIssues is all issues except `selectedIssue` (is array of `{id, summary, description}` objects)
+   * @return {JSX.Element}
+   * @constructor
+   */
+  function DisplayRefinementAdviceComponent({prompt, selectedIssue, otherIssues}){
+    const [response, setResponse] = useState(null);
 
     const loadData = async() => {
-      setAnswer(await generateSubtasksForIssue(prompt));
+      setResponse(await generateIssueRefinementAdvice(prompt));
     };
 
     useEffect(() => {
@@ -338,19 +378,80 @@ export default function RefinementPage(){
     /* Display results */
 
     // if answer not loaded yet
-    if(answer === null){
+    if(response === null){
       return(
         <LoadingComponent/>
       );
     }
 
-    if(!answer.ok){
+    if(!response.ok){
       return(
-        <ErrorComponent errorMessage={answer.errorMessage}/>
+        <ErrorComponent errorMessage={response.errorMessage}/>
       )
     }
 
-    const subtasks = answer.answer;
+
+    /* Process response.answer */
+
+    if(response.answer.action === "SPLIT"){
+      return <DisplayRefinementSplitAdviceComponent selectedIssue={selectedIssue} answer={response.answer}/>
+    }
+
+    if(response.answer.action === "MERGE"){
+      // Check if returned ID exists
+      const otherIssuesIDs = otherIssues.map(i => i.id);
+      if(!otherIssueIDs.includes(response.answer.id)){
+        return(
+          <ErrorComponent errorMessage={'Something wrong happened. Try again.'}/>
+        )
+      }
+
+      return(
+        <>
+
+        </>
+      );
+    }
+
+    if(response.answer.action === "DELETE"){
+      //////////////// NEED also to delete all subtask. Also need to note this in UI.
+      return(
+        <>
+
+        </>
+      );
+    }
+
+    if(response.answer.action === "FIX"){
+      return(
+        <>
+
+        </>
+      );
+    }
+
+    if(response.answer.action === "NO_ACTION"){
+      return(
+        <>
+
+        </>
+      );
+    }
+
+    // if unknown action (this should not happen)
+    return(
+      <ErrorComponent errorMessage={'Unknown refinement action received. Try again.'}/>
+    );
+
+
+    //////////////////////////////////////////// NEED to display old user story in each case
+    // when display `description` need handle that it can be null or undefined (as in )
+    /*
+    For example:
+          issueDescription = ((issueDescription !== undefined) && (issueDescription !== null))
+        ? convertJiraWikiMarkupToPlainText(issueDescription)
+        : '';
+     */
 
     if(subtasks.length === 0){
       return(
@@ -363,71 +464,195 @@ export default function RefinementPage(){
       )
     }
 
+
+  }
+
+
+  /**
+   * Displays Refinement advice when action is SPLIT
+   * @param selectedIssue is issue under refinement; is `{id, key, summary, description}` object
+   * @param answer is answer object. It is described in `refinement-user-story.hbs` file
+   * @constructor
+   */
+  function DisplayRefinementSplitAdviceComponent({selectedIssue, answer}){
     return(
       <>
-        <h3>Generated issues:</h3>
-        <div className={"container mb-3"}>
-          <p>Choose which one you want to add to your project. If you immediately changed your mind, you can delete subtask easily</p>
-          <div className={"row"}>
-            <div className={"col"}>
+        <h3>Generated advice (SPLIT):</h3>
+        <form name="form-generated-advice-split-select-parts" onSubmit={onSplitAdviceFormSubmitted}>
+          <div className={"form-group container mb-3"}>
+            <div className="row">
+              <div className="col">
 
-              {/* List of subtasks */}
-              {subtasks.map((subtask, index) => (
-
+                {/* Display selected issue */}
+                <b>Selected issue:</b>
                 <div className={"row mb-3 border border-2 rounded"}>
-
-                  {/* Column for button */}
-                  <div className="col-2 d-flex flex-row justify-content-around align-items-center">
-                    <button id={`generated-subtask-add-button-${index}`}
-                            className = {"btn btn-primary"} onClick={onAddGeneratedSubtask}>Add</button>
-                    <button id={`generated-subtask-delete-button-${index}`}
-                            className = {"btn btn-danger"} onClick={onDeleteGeneratedSubtask}>Delete</button>
-                  </div>
-
-                  {/* Column for subtask data */}
                   <div className="col">
-                    <div className="row">
-                      <h5 id={`generated-subtask-key-${index}`}>{subtask.key}</h5>
-                    </div>
-
-                    <div className="row">
-                      <div className="col-2">
-                        <b className={"mb-0"}>ID:</b>
-                      </div>
-                      <div className="col">
-                        <p id={`generated-subtask-id-${index}`} className={"mb-0"}></p>
-                      </div>
-                    </div>
-
-                    <div className="row">
-                      <div className="col-2">
-                        <b className={"mb-0"}>Summary:</b>
-                      </div>
-                      <div className="col">
-                        <p id={`generated-subtask-summary-${index}`} className={"mb-0"}> {subtask.task}</p>
-                      </div>
-                    </div>
-
-                    <div className="row">
-                      <div className="col-2">
-                        <b className={"mb-0"}>Description:</b>
-                      </div>
-                      <div className="col">
-                        <p id={`generated-subtask-description-${index}`} className={"mb-0"}>{subtask.description}</p>
-                      </div>
-                    </div>
+                    <h4>{selectedIssue.key}</h4>
+                    <p className={"mb-0"}><b>ID:</b> {selectedIssue.id}</p>
+                    <p className={"mb-0"}><b>Summary:</b> {selectedIssue.summary}</p>
+                    {selectedIssue.description !== undefined && selectedIssue.description !== null &&
+                      <p className={"mb-0"}><b>Description:</b> {
+                        convertJiraWikiMarkupToPlainText(selectedIssue.description)
+                      }</p>
+                    }
                   </div>
-
                 </div>
 
-              ))}
+                {/* Display generated parts */}
+                <p className={"mb-0"}>Select parts (at least 1) you want to create instead of selected issue. Apply is irreversible.</p>
+                <p className={"mb-0"}>You can edit generated parts.</p>
+                <p>Applying of refinement is irreversible.
+                  After applying, <b>selected issue will be deleted</b>, its subtasks will become children of first selected part.</p>
+                {answer.parts.map((part, index) => (
+                  <div className={"row mb-3 border border-2 rounded"}>
+
+                    {/* Column for checkbox */}
+                    <div className="col-1 d-flex flex-row justify-content-center align-items-center">
+                      <input className={"form-check-input"} type="checkbox" id={`generated-advice-split-checkbox-part-${index}`}/>
+                    </div>
+
+                    {/* Column for part data */}
+                    <div className="col">
+                      <div className="row">
+                        <h5>{index + 1}</h5>
+                      </div>
+
+                      {/* Summary */}
+                      <div className="row mb-1">
+                        <div className="col-2">
+                          <b className={"mb-0"}>Summary:</b>
+                        </div>
+                        <div className="col">
+                          <input type="text" className="form-control mb-0" id={`generated-advice-split-summary-part-${index}`}
+                                 defaultValue={replaceNewlines(part.summary)}/>
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <div className="row">
+                        <div className="col-2">
+                          <b className={"mb-0"}>Description:</b>
+                        </div>
+                        <div className="col">
+                            <textarea className="form-control mb-0" id={`generated-advice-split-description-part-${index}`}
+                                      rows="3" defaultValue={part.description}/>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Submit */}
+            <div className={"row justify-content-center mt-2 mb-4"}>
+              <div className="col-2 text-center">
+                <input type="submit" value={"Apply!"} className={"btn btn-success form-control"}/>
+              </div>
             </div>
           </div>
-        </div>
+        </form>
       </>
+    );
+  }
 
-    )
+  /**
+   * Displays Refinement advice when action is MERGE
+   * @param selectedIssue is issue under refinement (object `{id, key, summary, description}`)
+   * @param otherIssues is all issues except `selectedIssue` (is array of `{id, summary, description}` objects)
+   * @param answer is answer object. It is described in `refinement-user-story.hbs` file
+   * @constructor
+   */
+  function DisplayRefinementMergeAdviceComponent({selectedIssue, otherIssues, answer}){
+//    const merge /////// NEED to find issue woth whom reging will be happen
 
+
+    return(
+      <>
+        <h3>Generated advice (MERGE):</h3>
+        <form name="form-generated-advice-merge-apply" onSubmit={onMergeAdviceFormSubmitted}>
+          <div className={"form-group container mb-3"}>
+            <div className="row">
+              <div className="col">
+
+                <div className="row">
+                  <div className="col">
+                    {/* Display selected issue */}
+                    <b>Selected issue:</b>
+                    <div className={"row mb-3 border border-2 rounded"}>
+                      <div className="col">
+                        <h4>{selectedIssue.key}</h4>
+                        <p className={"mb-0"}><b>ID:</b> {selectedIssue.id}</p>
+                        <p className={"mb-0"}><b>Summary:</b> {selectedIssue.summary}</p>
+                        {selectedIssue.description !== undefined && selectedIssue.description !== null &&
+                          <p className={"mb-0"}><b>Description:</b> {
+                            convertJiraWikiMarkupToPlainText(selectedIssue.description)
+                          }</p>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col"></div>
+                </div>
+
+
+
+                {/* Display generated parts */}
+                <p className={"mb-0"}>Select parts (at least 1) you want to create instead of selected issue. Apply is irreversible.</p>
+                <p className={"mb-0"}>You can edit generated parts.</p>
+                <p>Applying of refinement is irreversible.
+                  After applying, <b>selected issue will be deleted</b>, its subtasks will become children of first selected part.</p>
+                {answer.parts.map((part, index) => (
+                  <div className={"row mb-3 border border-2 rounded"}>
+
+                    {/* Column for checkbox */}
+                    <div className="col-1 d-flex flex-row justify-content-center align-items-center">
+                      <input className={"form-check-input"} type="checkbox" id={`generated-advice-split-checkbox-part-${index}`}/>
+                    </div>
+
+                    {/* Column for part data */}
+                    <div className="col">
+                      <div className="row">
+                        <h5>{index + 1}</h5>
+                      </div>
+
+                      {/* Summary */}
+                      <div className="row mb-1">
+                        <div className="col-2">
+                          <b className={"mb-0"}>Summary:</b>
+                        </div>
+                        <div className="col">
+                          <input type="text" className="form-control mb-0" id={`generated-advice-split-summary-part-${index}`}
+                                 defaultValue={replaceNewlines(part.summary)}/>
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <div className="row">
+                        <div className="col-2">
+                          <b className={"mb-0"}>Description:</b>
+                        </div>
+                        <div className="col">
+                            <textarea className="form-control mb-0" id={`generated-advice-split-description-part-${index}`}
+                                      rows="3" defaultValue={part.description}/>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Submit */}
+            <div className={"row justify-content-center mt-2 mb-4"}>
+              <div className="col-2 text-center">
+                <input type="submit" value={"Apply!"} className={"btn btn-success form-control"}/>
+              </div>
+            </div>
+          </div>
+        </form>
+      </>
+    );
   }
 
 }

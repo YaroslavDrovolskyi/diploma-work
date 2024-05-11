@@ -10,7 +10,7 @@ import {useEffect, useState} from "react";
 import {
   createSubtask, deleteIssue,
   fetchAllBoardsForProject,
-  fetchAllStoriesTasksForBoard,
+  fetchAllNotDoneStoriesTasksForBoard,
   fetchCurrentProject,
   fetchIssue
 } from "../requests/template_requests";
@@ -61,7 +61,7 @@ export default function GenerateSubtasksPage(){
     let parent = document.getElementById('generation-parameters-inputs-component-parent');
     ReactDOM.render(<LoadingComponent />, parent);
 
-    let issues = await fetchAllStoriesTasksForBoard(boardId);
+    let issues = await fetchAllNotDoneStoriesTasksForBoard(boardId);
 
     // render inputs for generation parameters
     /*

@@ -130,19 +130,22 @@ export const generateSubtasksForIssue = async(prompt) => {
 }
 
 
-// answer is one of objects, described in prompt.
-// maybe, pass issues to filter to check the valididty of IDs returned
 /**
  * Generates advice for refinement of  issue, using Gemini API.
+ *
+ * @warning checks if issues with returned IDs exist ARE NOT PERFORMED
+ *
  * @see "refinement-user-story.hbs" file to see format of expected answer
  * @param prompt is prompt that will be sent to Gemini.
  * @return object `{ok, answer, errorMessage}`.
+
  *
  *
- * `ok` shows whether answer from Gemini received successfully or not and whether received answer is valid;
+ * `ok` shows whether answer from Gemini received successfully, and whether received answer is valid;
  *
- * `answer` (when `ok === true`) is `advice` object. Format - in corresponding .hbs-file;
- * Action can have these values:SPLIT, MERGE< DELETE FIX, NO_ACTION
+ * `answer` (when `ok === true`) is `advice` object. Exact object depends on `action` field.
+ * See possible formats in "refinement-user-story.hbs" file;
+ * Value of `action` is one of: `SPLIT`, `MERGE`, `DELETE`, `FIX`, `NO_ACTION`.
  *
  * `errorMessage` (when `ok === false`) is user-friendly text of error.
  */
@@ -225,7 +228,7 @@ export const generateIssueRefinementAdvice = async(prompt) => {
         return {ok: true, answer: obj};
       }
       default:{ // we can't reach this, but just in case
-        return {ok: false, errorMessage: 'Something wrong happened. Try again.'};
+        return {ok: false, errorMessage: 'Unknown refinement action. Try again.'};
       }
 
     }

@@ -71,7 +71,7 @@ export const fetchAllBoardsForProject = async() => {
  * @return {Promise<any[]>} array of issues
  * (issue is **`{id, key, issuetype, status, summary, description, subtasks}`** object)
  */
-export const fetchAllStoriesTasksForBoard = async (boardId) => {
+export const fetchAllNotDoneStoriesTasksForBoard = async (boardId) => {
   // map is necessary for not duplicating objects if some of them was received more than once
   // due to paging issues (for example shift because of object insertion on server)
   const issues = new Map(); // map of pairs [issuedId, issue]
