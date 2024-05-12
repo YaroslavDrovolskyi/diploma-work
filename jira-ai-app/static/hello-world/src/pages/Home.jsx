@@ -1,5 +1,5 @@
 import {
-  createSubtask,
+  createSubtask, createUserStory,
   deleteIssue,
   fetchAllBoardsForProject,
   fetchAllSubtaskForIssueForBoard,
@@ -33,6 +33,28 @@ export default function Home(){
 //    console.log(`All subtasks: ${JSON.stringify(allSubtasks)}`);
 
 //    await deleteIssue('TP-37');
+
+    /*
+    const createdUserStory = await createUserStory({
+      summary: 'Summary of newly created UserStory',
+      description: '1 2 \n3 \n 4 5\n6'
+    });
+    console.log(JSON.stringify(createdUserStory));
+
+     */
+
+    /*
+    const createdSubtask = await createSubtask(10067, {
+      task: 'Summary of\nnewly created Subtask',
+      description: '1 2 \n3 \n 4 5\n6'
+    });
+    console.log(JSON.stringify(createdSubtask));
+
+     */
+
+    await deleteIssue('TP-69');
+    await deleteIssue('TP-32');
+    await deleteIssue('TP-71');
   };
 
   const adf = convertPlainTextToADF("1 2 \n3 \n 4 5\n6");

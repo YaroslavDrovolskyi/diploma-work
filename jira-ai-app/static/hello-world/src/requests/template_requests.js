@@ -1,14 +1,25 @@
 import {requestJira, view} from "@forge/bridge";
+import {replaceNewlines, convertPlainTextToADF} from "../requests/helpers.js";
 
 
 ///////////////////////////////// This file can be named 'api_requests'
-//// file with Gemini requests can be named 'gemini_requests'
 
 
 
 /*
 A couple of sentences about pagination: https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/#pagination
  */
+
+/**
+ * Gets ID of current project. Uses `context`.
+ * @return {Promise<*>} ID of current project
+ */
+export const getCurrentProjectId = async() => {
+  const context = await view.getContext();
+  const currentProjectId = context.extension.project.id;
+
+  return currentProjectId;
+}
 
 /**
  * Fetches all boards for current project, that the user has permission to view.
@@ -100,6 +111,51 @@ export const fetchAllNotDoneStoriesTasksForBoard = async (boardId) => {
   return Array.from(issues.values());
 }
 
+
+// maybe replace issueId by issueKey???
+/**
+ * Returns all subtasks of given issue from a given board.
+ * For each subtask these fields are fetched: `id`, `key`.
+ *
+ * [Details](https://developer.atlassian.com/cloud/jira/software/rest/api-group-board/#api-rest-agile-1-0-board-boardid-issue-get)
+ * aboutI API call, its parameters and returned values
+ * @param boardId
+ * @param issueId
+ * @return {Promise<any[]>} array of subtasks
+ * (issue is **`{id, key}`** object)
+ */
+export const fetchAllSubtaskForIssueForBoard = async (boardId, issueId) => {
+  // map is necessary for not duplicating objects if some of them was received more than once
+  // due to paging issues (for example shift because of object insertion on server)
+  const issues = new Map(); // map of pairs [issuedId, issue]
+
+  let continueFetching = true;
+  let startAt = 0;
+
+  // make request while fetched page is not empty
+  while(continueFetching){
+    const resp = await requestJira(
+      `/rest/agile/1.0/board/${boardId}/issue?startAt=${startAt}&jql=(parent=${issueId})+and+(type=Subtask) \
+    &fields=id,key,parent&maxResults=50`);
+    let response = await resp.json();
+
+    // add fetched issues to map
+    for (const issue of response.issues){
+      issues.set(issue.id, issue); // if issue is already present in map, the more recent version of it is set
+      startAt++;
+    }
+
+    if(response.issues.length === 0){ // instead of, we can take response.isLast into account
+      continueFetching = false;
+    }
+  }
+
+  return Array.from(issues.values());
+}
+
+
+
+
 /*
 We can't fetch list of items using Jira Expression API and, accordingly, specify criteria;
 because it does not allow to get list of data.
@@ -116,7 +172,9 @@ export const fetchCurrentProject = async() => {
 }
 
 /**
- * Fetches issue, in particular with given fields: ID, key, issuetype, status, summary, description, subtasks
+ * Fetches issue, in particular with given fields: `ID`, `key`, `issuetype`, `status`, `summary`, `description`, `subtasks`.
+ *
+ * Description of returned issue is in the *Jira Wiki format*.
  * @param issueIdOrKey
  * @return {Promise<any>}
  */
@@ -126,7 +184,28 @@ export const fetchIssue = async(issueIdOrKey) => {
   return await response.json();
 }
 
-//
+
+/**
+ * Fetches issue with all fields.
+ *
+ * The main difference from `fetchIssue()` method is that there `description` of returned issue is in the *Atlassian Document Format*.
+ *
+ * [Details] (https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-get)
+ * about API call used.
+ * @param issueIdOrKey
+ * @return {Promise<any>}
+ */
+export const fetchIssueNewApi = async(issueIdOrKey) => {
+  const response = await requestJira(`/rest/api/3/issue/${issueIdOrKey}`, {
+    headers: {
+      'Accept': 'application/json'
+    }
+  });
+
+  return await response.json();
+}
+
+
 /**
  * [Details](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-types/#api-rest-api-3-issuetype-project-get)
  * about used API call and returned object.
@@ -144,6 +223,24 @@ export const fetchAllIssueTypesForProject = async(projectId) => {
 }
 
 
+/**
+ * Finds ID of issue type with given name for given project.
+ * @param issueTypeName is name of  wanted issue type. Default possible values: `Story`, `Task`, `Subtask`.
+ * @param projectId
+ * @return {Promise<*|null>} ID of issue type, or `null` if issue type with given name does not exist.
+ */
+export const fetchIssueTypeIdForProject = async(issueTypeName, projectId) => {
+  const allIssueTypes = await fetchAllIssueTypesForProject(projectId);
+
+  const issueType = allIssueTypes.find((t) => (t.name === issueTypeName));
+  if(issueType === undefined || issueType === null){
+    return null;
+  }
+
+  return issueType.id;
+}
+
+
 
 /**
  * Creates subtask as a child of Issue with given `parentIssueId`.
@@ -156,48 +253,29 @@ export const fetchAllIssueTypesForProject = async(projectId) => {
  * but returns null if project does not have issueType with name "Subtask"
  */
 export const createSubtask = async(parentIssueId, subtask) => {
-  // get current project
-  const context = await view.getContext();
-  const currentProjectId = context.extension.project.id;
+  const currentProjectId = await getCurrentProjectId();
+  const issueTypeId = await fetchIssueTypeIdForProject('Subtask', currentProjectId);
 
-  // find IssueType object that correspond to "Subtask" type, in order to get "Subtask"'s ID
-  // assumed that issueType "Subtask" always exist
-  const allIssueTypes = await fetchAllIssueTypesForProject(currentProjectId);
-  const subtaskIssueType = allIssueTypes.find((t) => (t.name === 'Subtask') && (t.subtask === true));
-  if(subtaskIssueType === undefined || subtaskIssueType === null){
+  if(issueTypeId === null){
     return null;
   }
-  const issueTypeId = subtaskIssueType.id;
 
   const bodyData = {
     fields: {
-      description: {
-        content: [
-          {
-            content: [
-              {
-                text: subtask.description,
-                type: "text"
-              }
-            ],
-            type: "paragraph"
-          }
-        ],
-        type: "doc",
-        version: 1
-      },
+      summary: replaceNewlines(subtask.task),
+      description: convertPlainTextToADF(subtask.description),
+
       issuetype: {
         id: issueTypeId
       },
+
       parent: {
         id: `${parentIssueId}`
       },
 
       project: {
         id: currentProjectId
-      },
-
-      summary: subtask.task
+      }
     }
   };
 
@@ -215,8 +293,54 @@ export const createSubtask = async(parentIssueId, subtask) => {
 
 
 /**
- * Deletes issue (Story/Task/Subtask) with given ID or key.
- * Note, that this method can't delete issue that has at least one child subtask
+ * Creates user story with given params.
+ *
+ * [Details](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-post)
+ * about used API call, parameters and returned object
+ * @param userStory is `{summary, description}` object, that will be created.
+ * @return {Promise<void>} `{id, key}` object for created User Story,
+ * but returns null if project does not have issue type with name "Story"
+ */
+export const createUserStory = async(userStory) => {
+  const currentProjectId = await getCurrentProjectId();
+  const issueTypeId = await fetchIssueTypeIdForProject('Story', currentProjectId);
+
+  if(issueTypeId === null){
+    return null;
+  }
+
+  const bodyData = {
+    fields: {
+      summary: replaceNewlines(userStory.summary),
+      description: convertPlainTextToADF(userStory.description),
+
+      issuetype: {
+        id: issueTypeId
+      },
+
+      project: {
+        id: currentProjectId
+      }
+    }
+  };
+
+  const response = await requestJira(`/rest/api/3/issue`, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(bodyData)
+  });
+
+  return(await response.json());
+}
+
+
+
+
+/**
+ * Deletes given issue (Story/Task/Subtask) together with all its subtasks.
  *
  * [Details](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-delete)
  * about used API call
@@ -224,7 +348,7 @@ export const createSubtask = async(parentIssueId, subtask) => {
  * @return
  */
 export const deleteIssue = async(issueIdOrKey) => {
-  const response = await requestJira(`/rest/api/3/issue/${issueIdOrKey}`, {
+  const response = await requestJira(`/rest/api/3/issue/${issueIdOrKey}?deleteSubtasks=true`, {
     method: 'DELETE'
   });
 
