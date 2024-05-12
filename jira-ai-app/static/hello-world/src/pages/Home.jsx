@@ -1,28 +1,47 @@
-import {createSubtask, deleteIssue, fetchAllBoardsForProject} from "../requests/template_requests";
+import {
+  createSubtask,
+  deleteIssue,
+  fetchAllBoardsForProject,
+  fetchAllSubtaskForIssueForBoard,
+  fetchIssueNewApi
+} from "../requests/template_requests";
 import {useEffect} from "react";
-import {convertJiraWikiMarkupToPlainText, isEmpty, replaceNewlines} from "../requests/helpers.js";
+import {convertJiraWikiMarkupToPlainText, isEmpty, replaceNewlines, convertPlainTextToADF} from "../requests/helpers.js";
 
 export default function Home(){
 
-  /*
-    const loadData = async() => {
-      const createdSubtask = await createSubtask(10002, {
-        task: "Task to get fresh AIR",
-        description: "Open the window to get fresh AIR into your room"
-      });
-      console.log(`Created subtask: ${JSON.stringify(createdSubtask)}`);
 
-   */
+  const loadData = async() => {
+
+    /*
+
+   Test to create subtask
+    const createdSubtask = await createSubtask(10002, {
+      task: "Task to get fresh AIR",
+      description: "Open the window to get fresh\nAIR into your room"
+    });
+    console.log(`Created subtask: ${JSON.stringify(createdSubtask)}`);
+ */
+
+    /*
+    const issue = await fetchIssueNewApi("TP-67");
+    console.log(`Fetched issue: ${JSON.stringify(issue)}`);
+
+     */
+
+//    const allSubtasks = await fetchAllSubtaskForIssueForBoard("1", "10011");
+//    console.log(`All subtasks: ${JSON.stringify(allSubtasks)}`);
 
 //    await deleteIssue('TP-37');
-//  };
+  };
 
-  /*
+  const adf = convertPlainTextToADF("1 2 \n3 \n 4 5\n6");
+  console.log(JSON.stringify(adf));
+
+
   useEffect(() => {
     loadData().then(r => console.log('loadData() finished'));
   }, []);
-
-   */
 
 
   const selectedIssue = {
@@ -32,12 +51,42 @@ export default function Home(){
     description: "Some description of selected issue"
   };
 
-  const answer = {
+  const otherIssues = [
+    {
+      id: "1001",
+      summary: "summary-1001",
+      description: "description-1001\nSome description-1001"
+    },
+    {
+      id: "1002",
+      summary: "summary-1002",
+      description: "description-1002\nSome description-1002"
+    },
+    {
+      id: "1003",
+      summary: "summary-1003",
+      description: "description-1003\nSome description-1003"
+    },
+    {
+      id: "1004",
+      summary: "summary-1004",
+      description: "description-1004\nSome description-1004"
+    },
+    {
+      id: "1005",
+      summary: "summary-1005",
+      description: "description-1005\nSome description-1005"
+    }
+  ];
+
+
+
+  const answerSplit = {
     action: "SPLIT",
     parts: [
       {
         summary: "summary 1",
-        description: "description 1"
+        description: "description 1\ndescription 1 line 2"
       },
       {
         summary: "summary 2",
@@ -59,12 +108,62 @@ export default function Home(){
   };
 
 
+  const answerMerge = {
+    action: "MERGE",
+    id: "1005",
+    summary: "summary\n of merged issue",
+    description: "description\nof merged issue"
+  }
+
+  const answerDelete = {
+    action: "DELETE",
+    reason: "Some reason line 1\nSome reason line 2"
+  };
+
+  const answerFix = {
+    action: "FIX",
+    summary: "new summary line 1\nnew summary line 2",
+    description: "new description line 1\nnew description line 2"
+  }
+
+
+
+
   return(
     <>
-      <DisplayRefinementSplitAdviceComponent selectedIssue={selectedIssue} answer={answer}/>
+      <DisplayRefinementSplitAdviceComponent selectedIssue={selectedIssue} answer={answerSplit}/>
     </>
   );
 
+  /*
+  return(
+    <>
+      <DisplayRefinementMergeAdviceComponent selectedIssue={selectedIssue} otherIssues={otherIssues} answer={answerMerge} />
+    </>
+  )
+
+   */
+
+  /*
+  return(
+    <DisplayRefinementDeleteAdviceComponent selectedIssue={selectedIssue} answer={answerDelete}/>
+  );
+
+   */
+
+  /*
+  return(
+    <DisplayRefinementFixAdviceComponent selectedIssue={selectedIssue} answer={answerFix}/>
+  );
+
+   */
+
+  /*
+  return(
+    <DisplayRefinementNoActionAdviceComponent selectedIssue={selectedIssue}/>
+  )
+
+   */
 }
 
 function DisplayRefinementSplitAdviceComponent({selectedIssue, answer}) {
@@ -155,6 +254,257 @@ function DisplayRefinementSplitAdviceComponent({selectedIssue, answer}) {
           </div>
         </div>
       </form>
+    </>
+  );
+}
+
+function DisplayRefinementMergeAdviceComponent({selectedIssue, otherIssues, answer}){
+  const issueToMergeWith = otherIssues.find((i) => i.id === answer.id);
+
+  return(
+    <>
+      <h3>Generated advice (MERGE):</h3>
+      <form name="form-generated-advice-merge-apply">
+        <div className={"form-group container mb-3"}>
+          <div className="row">
+            <div className="col">
+
+              {/* Display selected issue and issue it should be merged with */}
+              <div className="row">
+
+                {/* Display selected issue */}
+                <div className="col mr-2">
+                  <p className={"text-center mb-0"}><b className={"text-center"}>Selected issue</b></p>
+                  <div className={"col mb-3 p-1 border border-2 rounded"}>
+                    <p className={"mb-0"}><b>ID:</b> {selectedIssue.id}</p>
+                    <p className={"mb-0"}><b>Summary:</b> {selectedIssue.summary}</p>
+                    {selectedIssue.description !== undefined && selectedIssue.description !== null &&
+                      <p className={"mb-0"}><b>Description:</b> {
+                        convertJiraWikiMarkupToPlainText(selectedIssue.description)
+                      }</p>
+                    }
+                  </div>
+                </div>
+
+                {/* Display issue to merge with */}
+                <div className="col ml-2">
+                  <p className={"text-center mb-0"}><b className={"text-center"}>Issue to merge with</b></p>
+                  <div className={"col mb-3 p-1 border border-2 rounded"}>
+                    <p className={"mb-0"}><b>ID:</b> {issueToMergeWith.id}</p>
+                    <p className={"mb-0"}><b>Summary:</b> {issueToMergeWith.summary}</p>
+                    {issueToMergeWith.description !== undefined && issueToMergeWith.description !== null &&
+                      <p className={"mb-0"}><b>Description:</b> {
+                        convertJiraWikiMarkupToPlainText(issueToMergeWith.description)
+                      }</p>
+                    }
+                  </div>
+                </div>
+              </div>
+
+
+
+              {/* Display generated merged issue*/}
+              <div className="row">
+                <div className="col">
+                  <p className={"text-center mb-0"}><b className={"text-center"}>Generated merged issue</b></p>
+                  <p className={"mb-0"}>Applying of refinement is irreversible.
+                    After applying, this issue will be created, <b>both old issues will be deleted.</b></p>
+                  <p className={"mb-0"}>Subtasks of deleted issues will become children of newly created issue.</p>
+                  <p className={"mb-0"}>You can edit generated merged issue.</p>
+                  <div className={"row mb-3 p-1 border border-2 rounded"}>
+                    <div className="col">
+                      {/* Summary */}
+                      <div className="row mb-1">
+                        <div className="col-2">
+                          <b className={"mb-0"}>Summary:</b>
+                        </div>
+                        <div className="col">
+                          <input type="text" className="form-control mb-0" id={`generated-advice-merge-summary`}
+                                 defaultValue={replaceNewlines(answer.summary)}/>
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <div className="row">
+                        <div className="col-2">
+                          <b className={"mb-0"}>Description:</b>
+                        </div>
+                        <div className="col">
+                            <textarea className="form-control mb-0" id={`generated-advice-merge-description`}
+                                      rows="3" defaultValue={answer.description}/>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Submit */}
+          <div className={"row justify-content-center mt-2 mb-4"}>
+            <div className="col-2 text-center">
+              <input type="submit" value={"Apply!"} className={"btn btn-success form-control"}/>
+            </div>
+          </div>
+
+        </div>
+      </form>
+    </>
+  );
+}
+
+
+function DisplayRefinementDeleteAdviceComponent({selectedIssue, answer}){
+  return(
+    <>
+      <h3>Generated advice (DELETE):</h3>
+      <form name="form-generated-advice-delete-apply">
+        <div className={"form-group container mb-3"}>
+
+          {/* Display selected issue */}
+          <div className="row">
+            <div className="col">
+              <p className={"text-center mb-0"}><b className={"text-center"}>Selected issue</b></p>
+              <div className={"col mb-3 p-1 border border-2 rounded"}>
+                <h4>{selectedIssue.key}</h4>
+                <p className={"mb-0"}><b>ID:</b> {selectedIssue.id}</p>
+                <p className={"mb-0"}><b>Summary:</b> {selectedIssue.summary}</p>
+                {selectedIssue.description !== undefined && selectedIssue.description !== null &&
+                  <p className={"mb-0"}><b>Description:</b> {
+                    convertJiraWikiMarkupToPlainText(selectedIssue.description)
+                  }</p>
+                }
+              </div>
+            </div>
+          </div>
+
+          {/* Display generated advice */}
+          <div className="row">
+            <div className="col">
+              <p className={"text-center mb-0"}><b className={"text-center"}>Generated advice</b></p>
+              <p className={"mb-0"}><b>Advice:</b> Delete selected issue. Be careful, <b>deletion is irreversible</b>.</p>
+              <p className={"mb-0"}>All issue subtasks also will be deleted.</p>
+              <p className={"mb-0"}><b>Reason:</b> {replaceNewlines(answer.reason)}</p>
+            </div>
+          </div>
+
+          {/* Submit */}
+          <div className={"row justify-content-center mt-2 mb-4"}>
+            <div className="col-2 text-center">
+              <input type="submit" value={"Delete!"} className={"btn btn-danger form-control"}/>
+            </div>
+          </div>
+
+        </div>
+      </form>
+    </>
+  );
+}
+
+function DisplayRefinementFixAdviceComponent({selectedIssue, answer}) {
+  return (
+    <>
+      <h3>Generated advice (FIX):</h3>
+      <form name="form-generated-advice-fix-apply">
+        <div className={"form-group container mb-3"}>
+
+          {/* Display selected issue */}
+          <div className="row">
+            <div className="col">
+              <p className={"text-center mb-0"}><b className={"text-center"}>Selected issue</b></p>
+              <div className={"col mb-3 p-1 border border-2 rounded"}>
+                <h4>{selectedIssue.key}</h4>
+                <p className={"mb-0"}><b>ID:</b> {selectedIssue.id}</p>
+                <p className={"mb-0"}><b>Summary:</b> {selectedIssue.summary}</p>
+                {selectedIssue.description !== undefined && selectedIssue.description !== null &&
+                  <p className={"mb-0"}><b>Description:</b> {
+                    convertJiraWikiMarkupToPlainText(selectedIssue.description)
+                  }</p>
+                }
+              </div>
+            </div>
+          </div>
+
+          {/* Display generated merged issue*/}
+          <div className="row">
+            <div className="col">
+              <p className={"text-center mb-0"}><b className={"text-center"}>Generated fixed issue and description</b>
+              </p>
+              <p className={"mb-0"}>Applying of refinement is irreversible.</p>
+              <p className={"mb-0"}>You can edit generated summary and description.</p>
+              <div className={"row mb-3 p-1 border border-2 rounded"}>
+                <div className="col">
+                  {/* Summary */}
+                  <div className="row mb-1">
+                    <div className="col-2">
+                      <b className={"mb-0"}>Summary:</b>
+                    </div>
+                    <div className="col">
+                      <input type="text" className="form-control mb-0" id={`generated-advice-fix-summary`}
+                             defaultValue={replaceNewlines(answer.summary)}/>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div className="row">
+                    <div className="col-2">
+                      <b className={"mb-0"}>Description:</b>
+                    </div>
+                    <div className="col">
+                            <textarea className="form-control mb-0" id={`generated-advice-fix-description`}
+                                      rows="3" defaultValue={answer.description}/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Submit */}
+          <div className={"row justify-content-center mt-2 mb-4"}>
+            <div className="col-2 text-center">
+              <input type="submit" value={"Apply!"} className={"btn btn-success form-control"}/>
+            </div>
+          </div>
+
+        </div>
+      </form>
+    </>
+  );
+}
+
+function DisplayRefinementNoActionAdviceComponent({selectedIssue}) {
+  return (
+    <>
+      <h3>Generated advice (NO ACTION):</h3>
+
+      <div className={"container mb-3"}>
+        {/* Display selected issue */}
+        <div className="row">
+          <div className="col">
+            <p className={"text-center mb-0"}><b className={"text-center"}>Selected issue</b></p>
+            <div className={"col mb-3 p-1 border border-2 rounded"}>
+              <h4>{selectedIssue.key}</h4>
+              <p className={"mb-0"}><b>ID:</b> {selectedIssue.id}</p>
+              <p className={"mb-0"}><b>Summary:</b> {selectedIssue.summary}</p>
+              {selectedIssue.description !== undefined && selectedIssue.description !== null &&
+                <p className={"mb-0"}><b>Description:</b> {
+                  convertJiraWikiMarkupToPlainText(selectedIssue.description)
+                }</p>
+              }
+            </div>
+          </div>
+        </div>
+
+        {/* Display generated advice */}
+        <div className="row">
+          <div className="col">
+            <p className={"text-center mb-0"}><b className={"text-center"}>Generated advice</b></p>
+            <p className={"mb-0"}><b>Advice:</b> No action is recommended. Selected issue does not need refinement.</p>
+          </div>
+        </div>
+      </div>
     </>
   );
 }
