@@ -1,8 +1,9 @@
 import {
+  changeIssueParent,
   createSubtask, createUserStory,
   deleteIssue,
   fetchAllBoardsForProject,
-  fetchAllSubtaskForIssueForBoard,
+  fetchAllSubtasksForIssueForBoard,
   fetchIssueNewApi
 } from "../requests/template_requests";
 import {useEffect} from "react";
@@ -52,9 +53,18 @@ export default function Home(){
 
      */
 
+    /*
     await deleteIssue('TP-69');
     await deleteIssue('TP-32');
     await deleteIssue('TP-71');
+
+     */
+
+    /*
+    const response = await changeIssueParent("10069", "10067");
+    console.log(`Response: ${response.status} ${response.statusText}`);
+    
+     */
   };
 
   const adf = convertPlainTextToADF("1 2 \n3 \n 4 5\n6");

@@ -124,7 +124,7 @@ export const fetchAllNotDoneStoriesTasksForBoard = async (boardId) => {
  * @return {Promise<any[]>} array of subtasks
  * (issue is **`{id, key}`** object)
  */
-export const fetchAllSubtaskForIssueForBoard = async (boardId, issueId) => {
+export const fetchAllSubtasksForIssueForBoard = async (boardId, issueId) => {
   // map is necessary for not duplicating objects if some of them was received more than once
   // due to paging issues (for example shift because of object insertion on server)
   const issues = new Map(); // map of pairs [issuedId, issue]
@@ -350,6 +350,37 @@ export const createUserStory = async(userStory) => {
 export const deleteIssue = async(issueIdOrKey) => {
   const response = await requestJira(`/rest/api/3/issue/${issueIdOrKey}?deleteSubtasks=true`, {
     method: 'DELETE'
+  });
+
+  return response;
+}
+
+
+/**
+ * Changes parent issue of given issue
+ *
+ * [Details](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-put)
+ * about used API call.
+ * @param issueId
+ * @param parentId
+ * @return {Promise<ResponseObject|string|void>}
+ */
+export const changeIssueParent = async(issueId, parentId) => {
+  const bodyData = {
+    fields: {
+      parent: {
+        id: `${parentId}`
+      },
+    }
+  };
+
+  const response = await requestJira(`/rest/api/3/issue/${issueId}`, {
+    method: 'PUT',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(bodyData)
   });
 
   return response;

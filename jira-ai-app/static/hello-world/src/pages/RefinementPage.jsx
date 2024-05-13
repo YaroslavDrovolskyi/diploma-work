@@ -1,6 +1,8 @@
 import {
+  changeIssueParent,
+  createUserStory, deleteIssue,
   fetchAllBoardsForProject,
-  fetchAllNotDoneStoriesTasksForBoard, fetchAllSubtaskForIssueForBoard,
+  fetchAllNotDoneStoriesTasksForBoard, fetchAllSubtasksForIssueForBoard,
   fetchCurrentProject, fetchIssue
 } from "../requests/template_requests";
 import {useEffect, useState} from "react";
@@ -127,7 +129,7 @@ export default function RefinementPage(){
       '[id^="generated-advice-split-checkbox-part-"]:checked'));
 
     const selectedPartsIndices = checkedCheckBoxes.map(b => b.id.replace(/[^0-9]/g, '')); // delete non-numbers
-    console.log(`selectedPartsIndices: ${selectedPartsIndices}`); /////////////////////////////////////////////
+//    console.log(`selectedPartsIndices: ${selectedPartsIndices}`); /////////////////////////////////////////////
 
     if(selectedPartsIndices.length < 2){
       alert("Choose at least 2 parts");
@@ -156,42 +158,32 @@ export default function RefinementPage(){
       });
     }
 
-    console.log(`Selected parts: ${JSON.stringify(parts)}`); ////////////////////////////////////////////////////////////
+//    console.log(`Selected parts: ${JSON.stringify(parts)}`); ////////////////////////////////////////////////////////////
 
-    // create issues from parts
-    let createdIssues = []; // array of {id, key} objects
-
-
-    // find all subtasks of to-be-deleted issue
-    const selectedIssueSubtasks = fetchAllSubtaskForIssueForBoard(selectedIssue.id, selectedBoardId);
-    console.log(`Subtasks: ${JSON.stringify(selectedIssueSubtasks)}`); /////////////////////////////////////////////////////
-
-
-    ///////// NEED to transform text to ADF.
-    /////////////// NEED to create issue NNED to write function for it
-
+    // create user stories from parts
+    let createdUserStories = []; // array of {id, key} objects
+    for(const p of parts){
+      createdUserStories.push(await createUserStory(
+        {
+          summary: p.summary,
+          description:p.description
+        }
+      ));
+    }
 
 
+    // change parent of all subtasks of to-be-deleted issue
+    const selectedIssueSubtasks = await fetchAllSubtasksForIssueForBoard(selectedBoardId, selectedIssue.id);
+//    console.log(`Subtasks: ${JSON.stringify(selectedIssueSubtasks)}`); /////////////////////////////////////////////////////
 
-    /*
-    Create issues from parts
-    for each subtask change parent on first part
+    for(const subtask of selectedIssueSubtasks){
+      await changeIssueParent(subtask.id, createdUserStories[0].id);
+    }
 
+    // delete issue under refinement
+    await deleteIssue(selectedIssue.id);
 
-     */
-
-   /////////////////////////// {/* When apply actions, need to take values from inputs, not from memory */}
-
-    /*
-    {/* NEED to make remark about what will be with subtasks of selected issue (after implementation)
-                The best variant is to change parent of each generated subtask into first generated part }
-     */
-
-
-    /*
-    Треба зробити так, щоб не можна було обрати менше однієї part для генерації.
-    Також щоб не можна було що поле summary пустим.
-     */
+    alert(`SPLIT refinement of ${selectedIssue.key} issue successfully finished!`);
   }
 
   const onMergeAdviceFormSubmitted = async(event) => {
@@ -433,6 +425,7 @@ export default function RefinementPage(){
    * @constructor
    */
   function DisplayRefinementAdviceComponent({prompt, selectedIssue, otherIssues}){
+    /* /////////////////////////////////////////////// NEED to uncomment outside the testing
     const [response, setResponse] = useState(null);
 
     const loadData = async() => {
@@ -443,6 +436,41 @@ export default function RefinementPage(){
       loadData();
     }, []);
 
+     */
+
+
+    const answerSplit = {
+      action: "SPLIT",
+      parts: [
+        {
+          summary: `summary 1 instead of ${selectedIssue.key}` ,
+          description: "description 1\ndescription 1 line 2"
+        },
+        {
+          summary: `summary 2 instead of ${selectedIssue.key}`,
+          description: "description 2"
+        },
+        {
+          summary: `summary 3 instead of ${selectedIssue.key}`,
+          description: "description 3"
+        },
+        {
+          summary: `summary 4 instead of ${selectedIssue.key}`,
+          description: "description 4"
+        },
+        {
+          summary: `summary 5 instead of ${selectedIssue.key}`,
+          description: "description 5"
+        }
+      ]
+    };
+
+    const answer = answerSplit;
+
+    const response = {
+      ok: true,
+      answer: answer
+    };
 
     /* Display results */
 

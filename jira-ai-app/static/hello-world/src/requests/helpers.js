@@ -164,6 +164,61 @@ export const replaceNewlines = (str) => {
 
 
 /**
+ *
+ * @param str
+ * @return {boolean} if given string contains any non-whitespace character
+ */
+export const isNonEmpty = (str) => {
+  return /^(?!\s*$).+/.test(str);
+}
+
+
+/**
+ * Converts given string into [Atlassian Document Format](https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/)
+ *
+ * Packs given string into paragraph. Each `\n` in `str` is replaced by `hardBreak` object.
+ * @param str is plain text. It can contain `\n`.
+ * @return *Atlassian Document Format* as object
+ */
+export const convertPlainTextToADF = (str) => {
+  const lines = str.split('\n');
+
+  let adf = {
+    version: 1,
+    type: "doc",
+    content: [
+      {
+        type:"paragraph",
+        content:[]
+      }
+    ]
+  };
+
+
+  let paragraph = adf.content[0].content;
+  for(const line of lines){
+
+    // push line
+    paragraph.push(
+      {
+        type: "text",
+        text: line
+      }
+    );
+
+    // push line delimiter
+    paragraph.push(
+      {
+        type: "hardBreak"
+      }
+    );
+  }
+
+  return adf;
+}
+
+
+/**
  * Check if object contains each of given **`field`** and if each such field has given **`type`**.
  *
  * Available types: `boolean`, `number`, `string`, `object`, `undefined`.
