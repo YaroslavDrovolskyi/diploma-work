@@ -122,7 +122,7 @@ export const fetchAllNotDoneStoriesTasksForBoard = async (boardId) => {
  * @param boardId
  * @param issueId
  * @return {Promise<any[]>} array of subtasks
- * (issue is **`{id, key}`** object)
+ * (subtask is **`{id, key}`** object)
  */
 export const fetchAllSubtasksForIssueForBoard = async (boardId, issueId) => {
   // map is necessary for not duplicating objects if some of them was received more than once
@@ -340,7 +340,7 @@ export const createUserStory = async(userStory) => {
 
 
 /**
- * Deletes given issue (Story/Task/Subtask) together with all its subtasks.
+ * Deletes given issue (Story/Task/Subtask) and all its subtasks.
  *
  * [Details](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-delete)
  * about used API call
@@ -371,6 +371,37 @@ export const changeIssueParent = async(issueId, parentId) => {
       parent: {
         id: `${parentId}`
       },
+    }
+  };
+
+  const response = await requestJira(`/rest/api/3/issue/${issueId}`, {
+    method: 'PUT',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(bodyData)
+  });
+
+  return response;
+}
+
+
+/**
+ * Changes summary and description of given issue.
+ *
+ * [Details](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-put)
+ * about used API call.
+ * @param issueId is ID or key of issue that we need to change
+ * @param newSummary is new summary
+ * @param newDescription is new description
+ * @return {Promise<any>}
+ */
+export const changeIssueSummaryDescription = async(issueId, newSummary, newDescription) => {
+  const bodyData = {
+    fields: {
+      summary: replaceNewlines(newSummary),
+      description: convertPlainTextToADF(newDescription)
     }
   };
 

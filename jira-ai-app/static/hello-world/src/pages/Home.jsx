@@ -1,5 +1,5 @@
 import {
-  changeIssueParent,
+  changeIssueParent, changeIssueSummaryDescription,
   createSubtask, createUserStory,
   deleteIssue,
   fetchAllBoardsForProject,
@@ -65,6 +65,10 @@ export default function Home(){
     console.log(`Response: ${response.status} ${response.statusText}`);
     
      */
+
+    const response = await changeIssueSummaryDescription("10084", "New summary\nTP-85", "New" +
+      "\ndescription\nOK");
+    console.log(`Response: ${response.status} ${response.statusText}`);
   };
 
   const adf = convertPlainTextToADF("1 2 \n3 \n 4 5\n6");
@@ -160,35 +164,35 @@ export default function Home(){
 
 
 
-
+/*
   return(
     <>
       <DisplayRefinementSplitAdviceComponent selectedIssue={selectedIssue} answer={answerSplit}/>
     </>
   );
 
-  /*
+ */
+
+/*
   return(
     <>
       <DisplayRefinementMergeAdviceComponent selectedIssue={selectedIssue} otherIssues={otherIssues} answer={answerMerge} />
     </>
-  )
+  );
+ */
 
-   */
-
-  /*
+/*
   return(
     <DisplayRefinementDeleteAdviceComponent selectedIssue={selectedIssue} answer={answerDelete}/>
   );
 
-   */
+ */
 
-  /*
+
   return(
     <DisplayRefinementFixAdviceComponent selectedIssue={selectedIssue} answer={answerFix}/>
   );
 
-   */
 
   /*
   return(

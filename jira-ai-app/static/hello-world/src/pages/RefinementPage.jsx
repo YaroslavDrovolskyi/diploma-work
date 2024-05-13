@@ -1,5 +1,5 @@
 import {
-  changeIssueParent,
+  changeIssueParent, changeIssueSummaryDescription,
   createUserStory, deleteIssue,
   fetchAllBoardsForProject,
   fetchAllNotDoneStoriesTasksForBoard, fetchAllSubtasksForIssueForBoard,
@@ -186,23 +186,101 @@ export default function RefinementPage(){
     alert(`SPLIT refinement of ${selectedIssue.key} issue successfully finished!`);
   }
 
-  const onMergeAdviceFormSubmitted = async(event) => {
+
+  /**
+   * Deletes `selectedIssue` and `issueToMergeWith`. Instead, creates merged issue.
+   * Subtasks of deleted issues will become children of newly created merged issue.
+   * @param event
+   * @param selectedIssue is issue under refinement (object `{id, key, summary, description}`)
+   * @param issueToMergeWith is `{id, summary, description}` object
+   * @constructor
+   */
+  const onMergeAdviceFormSubmitted = async(event, selectedIssue, issueToMergeWith) => {
     event.preventDefault();
-    {/* When apply actions, need to take values from inputs, not from memory
 
-     Також щоб не можна було що поле summary пустим. (using RegExp of whitespace characters)*/}
+    /* Create merged User Story */
+    // get params for creating merged user story
+    let summary = document.getElementById(`generated-advice-merge-summary`).value;
+    let description = document.getElementById(`generated-advice-merge-description`).value;
 
-    /*
-    NEED to delete both issues. Instead, should create one issue. Subtaks frm both issues will be moved to newly created issue.
-     */
+    // check summary and description using regex
+    if(!isNonEmpty(summary)){
+      alert("Summary field must be non-empty");
+      return;
+    }
+    if(!isNonEmpty(description)){
+      description = '';
+    }
+
+    // create merged User Story, is {id, key} object
+    const mergedUserStory = await createUserStory(
+      {
+        summary: summary,
+        description: description
+      }
+    );
+
+
+    /* move subtasks from `selectedIssue` and `issueToMergeWith` to `mergedUserStory` */
+    // find all subtasks of `selectedIssue` and `issueToMergeWith`
+    const selectedIssueSubtasks = await fetchAllSubtasksForIssueForBoard(selectedBoardId, selectedIssue.id);
+    const issueToMergeWithSubtasks = await fetchAllSubtasksForIssueForBoard(selectedBoardId, issueToMergeWith.id);
+
+    for(const subtask of selectedIssueSubtasks){
+      await changeIssueParent(subtask.id, mergedUserStory.id);
+    }
+    for(const subtask of issueToMergeWithSubtasks){
+      await changeIssueParent(subtask.id, mergedUserStory.id);
+    }
+
+    /* delete issues under merging */
+    await deleteIssue(selectedIssue.id);
+    await deleteIssue(issueToMergeWith.id);
+
+    alert(`MERGE refinement successfully finished! Created ${mergedUserStory.key} instead of issues with ID ${selectedIssue.id} and ${issueToMergeWith.id}`);
   }
 
-  const onDeleteAdviceFormSubmitted = async(event) => {
-    //// //////////////// NEED also to delete all subtask. Also need to note this in UI.
+
+  /**
+   * Deletes `selectedIssue`
+   * @param event
+   * @param selectedIssue is issue under refinement (object `{id, key, summary, description}`)
+   */
+  const onDeleteAdviceFormSubmitted = async(event, selectedIssue) => {
+    event.preventDefault();
+
+    await deleteIssue(selectedIssue.id);
+
+    alert(`DELETE refinement successfully finished!\nDeleted ${selectedIssue.key} and all its subtasks`);
   }
 
-  const onFixAdviceFormSubmitted = async(event) => {
-    /////////////// NEED not allow empty 'summary' field
+
+  /**
+   * Edits given `selectedIssue` according to input fields
+   * @param event
+   * @param selectedIssue is issue under refinement (object `{id, key, summary, description}`)
+   */
+  const onFixAdviceFormSubmitted = async(event, selectedIssue) => {
+    event.preventDefault();
+
+
+    // get params for editing user story
+    let summary = document.getElementById(`generated-advice-fix-summary`).value;
+    let description = document.getElementById(`generated-advice-fix-description`).value;
+
+    // check summary and description using regex
+    if(!isNonEmpty(summary)){
+      alert("Summary field must be non-empty");
+      return;
+    }
+    if(!isNonEmpty(description)){
+      description = '';
+    }
+
+    // change issue's summary and description
+    await changeIssueSummaryDescription(selectedIssueId, summary, description);
+
+    alert(`FIX refinement successfully finished!\nChanged summary and description of ${selectedIssue.key}`);
   }
 
 
@@ -465,7 +543,25 @@ export default function RefinementPage(){
       ]
     };
 
-    const answer = answerSplit;
+    const answerMerge = {
+      action: "MERGE",
+      id: "10082",
+      summary: "summary\n of merged issue\n10082",
+      description: "description\nof merged issue\n10082"
+    }
+
+    const answerDelete = {
+      action: "DELETE",
+      reason: "Some reason line 1\nSome reason line 2"
+    };
+
+    const answerFix = {
+      action: "FIX",
+      summary: "new summary line 1\nnew summary line 2",
+      description: "new description line 1\nnew description line 2"
+    }
+
+    const answer = answerFix;
 
     const response = {
       ok: true,
@@ -499,7 +595,7 @@ export default function RefinementPage(){
     if(response.answer.action === "MERGE"){
       // Check if returned ID exists
       const otherIssuesIDs = otherIssues.map(i => i.id);
-      if(!otherIssueIDs.includes(response.answer.id)){
+      if(!otherIssuesIDs.includes(response.answer.id)){
         return(
           <ErrorComponent errorMessage={'Something wrong happened. Try again.'}/>
         )
@@ -639,7 +735,9 @@ export default function RefinementPage(){
     return(
       <>
         <h3>Generated advice (MERGE):</h3>
-        <form name="form-generated-advice-merge-apply" onSubmit={onMergeAdviceFormSubmitted}>
+        <form name="form-generated-advice-merge-apply" onSubmit={(event) => {
+          onMergeAdviceFormSubmitted(event, selectedIssue, issueToMergeWith);
+        }}>
           <div className={"form-group container mb-3"}>
             <div className="row">
               <div className="col">
@@ -682,9 +780,9 @@ export default function RefinementPage(){
                   <div className="col">
                     <p className={"text-center mb-0"}><b className={"text-center"}>Generated merged issue</b></p>
                     <p className={"mb-0"}>Applying of refinement is irreversible.
-                      After applying, this issue will be created, <b>both old issues will be deleted.</b></p>
+                      After applying, merged issue will be created, <b>both old issues will be deleted.</b></p>
                     <p className={"mb-0"}>Subtasks of deleted issues will become children of newly created issue.</p>
-                    <p className={"mb-0"}>You can edit generated merged issue.</p>
+                    <p className={"mb-1"}>You can edit generated merged issue.</p>
                       <div className={"row mb-3 p-1 border border-2 rounded"}>
                         <div className="col">
                           {/* Summary */}
@@ -739,7 +837,9 @@ export default function RefinementPage(){
     return(
       <>
         <h3>Generated advice (DELETE):</h3>
-        <form name="form-generated-advice-delete-apply" onSubmit={onDeleteAdviceFormSubmitted}>
+        <form name="form-generated-advice-delete-apply" onSubmit={(event) => {
+          onDeleteAdviceFormSubmitted(event, selectedIssue);
+        }}>
           <div className={"form-group container mb-3"}>
 
             {/* Display selected issue */}
@@ -793,7 +893,9 @@ export default function RefinementPage(){
     return(
       <>
         <h3>Generated advice (FIX):</h3>
-        <form name="form-generated-advice-fix-apply" onSubmit={onFixAdviceFormSubmitted}>
+        <form name="form-generated-advice-fix-apply" onSubmit={(event) => {
+          onFixAdviceFormSubmitted(event, selectedIssue, answer);
+        }}>
           <div className={"form-group container mb-3"}>
 
             {/* Display selected issue */}
