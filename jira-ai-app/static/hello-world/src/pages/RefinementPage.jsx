@@ -503,7 +503,6 @@ export default function RefinementPage(){
    * @constructor
    */
   function DisplayRefinementAdviceComponent({prompt, selectedIssue, otherIssues}){
-    /* /////////////////////////////////////////////// NEED to uncomment outside the testing
     const [response, setResponse] = useState(null);
 
     const loadData = async() => {
@@ -514,59 +513,7 @@ export default function RefinementPage(){
       loadData();
     }, []);
 
-     */
 
-
-    const answerSplit = {
-      action: "SPLIT",
-      parts: [
-        {
-          summary: `summary 1 instead of ${selectedIssue.key}` ,
-          description: "description 1\ndescription 1 line 2"
-        },
-        {
-          summary: `summary 2 instead of ${selectedIssue.key}`,
-          description: "description 2"
-        },
-        {
-          summary: `summary 3 instead of ${selectedIssue.key}`,
-          description: "description 3"
-        },
-        {
-          summary: `summary 4 instead of ${selectedIssue.key}`,
-          description: "description 4"
-        },
-        {
-          summary: `summary 5 instead of ${selectedIssue.key}`,
-          description: "description 5"
-        }
-      ]
-    };
-
-    const answerMerge = {
-      action: "MERGE",
-      id: "10082",
-      summary: "summary\n of merged issue\n10082",
-      description: "description\nof merged issue\n10082"
-    }
-
-    const answerDelete = {
-      action: "DELETE",
-      reason: "Some reason line 1\nSome reason line 2"
-    };
-
-    const answerFix = {
-      action: "FIX",
-      summary: "new summary line 1\nnew summary line 2",
-      description: "new description line 1\nnew description line 2"
-    }
-
-    const answer = answerFix;
-
-    const response = {
-      ok: true,
-      answer: answer
-    };
 
     /* Display results */
 

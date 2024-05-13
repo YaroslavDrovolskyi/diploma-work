@@ -10,7 +10,7 @@ modules:
           route: '/'
         - title: Generate subtasks
           route: '/generate-subtasks'
-        - title: Refinement of User stories and Tasks
+        - title: Refine User story / Task
           route: '/refinement'
         - title: Page 3
           route: '/page-3'
