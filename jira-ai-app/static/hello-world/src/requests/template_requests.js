@@ -22,6 +22,40 @@ export const getCurrentProjectId = async() => {
 }
 
 /**
+ * Fetches all issue fields *(including custom fields)* for application instance
+ *
+ * [Details](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-fields/#api-rest-api-3-field-get)
+ * about API call used
+ * @return {Promise<any>} list of fields. Field is `{id, key, name, untranslatedName, custom `*(bool)*`, ...}` object.
+ */
+export const fetchAllIssueFields = async() => {
+  const response = await requestJira(`/rest/api/3/field`, {
+    headers: {
+      'Accept': 'application/json'
+    }
+  });
+
+  return await response.json();
+}
+
+
+// use "Story point estimate" for story point estimate
+/**
+ * Finds issue field with given `untranslatedName`.
+ *
+ * Inspired by [comment](https://community.developer.atlassian.com/t/confirm-variancy-of-jira-cloud-issue-field-keys-for-custom-fields/21134/2)
+ * on forum (can't use hardcoded ID for custom fields, because custom fields may have different IDs on every instance).
+ * @param untranslatedName
+ * @return found field `{id, key, name, untranslatedName, custom `*(bool)*`, ...}` object,
+ * or `undefined` if field with given `untranslatedName` does not exist.
+ */
+export const getIssueFieldByUntranslatedName = async(untranslatedName) => {
+  const fields = await fetchAllIssueFields();
+
+  return await fields.find((f) => f.untranslatedName === untranslatedName);
+}
+
+/**
  * Fetches all boards for current project, that the user has permission to view.
  *
  * [Details](https://developer.atlassian.com/cloud/jira/software/rest/api-group-board/#api-rest-agile-1-0-board-get)
@@ -80,7 +114,7 @@ export const fetchAllBoardsForProject = async() => {
  * aboutI API call, its parameters and returned values
  * @param boardId
  * @return {Promise<any[]>} array of issues
- * (issue is **`{id, key, issuetype, status, summary, description, subtasks}`** object)
+ * (issue is **`{id, key, fields: {issuetype, status, summary, description, subtasks}}`** object)
  */
 export const fetchAllNotDoneStoriesTasksForBoard = async (boardId) => {
   // map is necessary for not duplicating objects if some of them was received more than once
@@ -137,6 +171,49 @@ export const fetchAllSubtasksForIssueForBoard = async (boardId, issueId) => {
     const resp = await requestJira(
       `/rest/agile/1.0/board/${boardId}/issue?startAt=${startAt}&jql=(parent=${issueId})+and+(type=Subtask) \
     &fields=id,key,parent&maxResults=50`);
+    let response = await resp.json();
+
+    // add fetched issues to map
+    for (const issue of response.issues){
+      issues.set(issue.id, issue); // if issue is already present in map, the more recent version of it is set
+      startAt++;
+    }
+
+    if(response.issues.length === 0){ // instead of, we can take response.isLast into account
+      continueFetching = false;
+    }
+  }
+
+  return Array.from(issues.values());
+}
+
+
+/**
+ * Returns all not-DONE issues of type 'Story'/'Task' from a board backlog, for a given board ID.
+ * For each issue these fields are fetched: id, key, issuetype, status, summary, description
+ *
+ * [Details](https://developer.atlassian.com/cloud/jira/software/rest/api-group-board/#api-rest-agile-1-0-board-boardid-backlog-get)
+ * aboutI API call, its parameters and returned values
+ * @param boardId
+ * @return {Promise<any[]>} array of issues
+ * (issue is **`{id, key, fields: {issuetype, status, summary, description, priority,`
+ * *getIssueFieldByUntranslatedName("Story point estimate").id* `}}`** object)
+ */
+export const fetchAllNotDoneStoriesTasksForBoardBacklog = async (boardId) => {
+  // map is necessary for not duplicating objects if some of them was received more than once
+  // due to paging issues (for example shift because of object insertion on server)
+  const issues = new Map(); // map of pairs [issuedId, issue]
+  const estimateFieldId = (await getIssueFieldByUntranslatedName("Story point estimate")).id;
+  // because it is custom field
+
+  let continueFetching = true;
+  let startAt = 0;
+
+  // make request while fetched page is not empty
+  while(continueFetching){
+    const resp = await requestJira(
+      `/rest/agile/1.0/board/${boardId}/backlog?startAt=${startAt}&jql=status!=Done+and+(type=Story+or+type=Task) \
+    &fields=id,key,issuetype,status,summary,description,subtasks,priority,${estimateFieldId}&maxResults=50`);
     let response = await resp.json();
 
     // add fetched issues to map
@@ -238,6 +315,47 @@ export const fetchIssueTypeIdForProject = async(issueTypeName, projectId) => {
   }
 
   return issueType.id;
+}
+
+
+/**
+ * Fetches all priorities that are available in given project.
+ *
+ * [Details](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-priorities/#api-rest-api-3-priority-search-get)
+ * about API call used
+ * @param projectId is string
+ * @return {Promise<any[]>} array of priorities. Priority is `{id, name, description, isDefault, ...}` object.
+ */
+export const fetchAllPrioritiesForProject = async(projectId) => {
+  // map is necessary for not duplicating objects if some of them was received more than once
+  // due to paging issues (for example shift because of object insertion on server)
+  const priorities = new Map(); // map of pairs [priorityId, priority]
+
+  let continueFetching = true;
+  let startAt = 0;
+
+  // make request while fetched page is not empty
+  while(continueFetching){
+    const resp = await requestJira(`/rest/api/3/priority/search?projectId=${projectId}&startAt=${startAt}&maxResults=50`, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+
+    let response = await resp.json();
+
+    // add fetched priorities to map
+    for (const priority of response.values){
+      priorities.set(priority.id, priority); // if issue is already present in map, the more recent version of it is set
+      startAt++;
+    }
+
+    if(response.values.length === 0){ // instead of, we can take response.isLast into account
+      continueFetching = false;
+    }
+  }
+
+  return Array.from(priorities.values());
 }
 
 
@@ -404,6 +522,70 @@ export const changeIssueSummaryDescription = async(issueId, newSummary, newDescr
       description: convertPlainTextToADF(newDescription)
     }
   };
+
+  const response = await requestJira(`/rest/api/3/issue/${issueId}`, {
+    method: 'PUT',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(bodyData)
+  });
+
+  return response;
+}
+
+
+
+/**
+ * @Warning It will work only if field 'Priority' is enabled for User stories and Tasks (in project settings)
+ *
+ * Changes priority of given issue
+ *
+ * [Details](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-put)
+ * about used API call.
+ *
+ * @param issueId is string
+ * @param newPriorityId is string
+ */
+export const changeIssuePriority = async(issueId, newPriorityId) => {
+  const bodyData = {
+    fields: {
+      priority: {
+        id: `${newPriorityId}`
+      }
+    }
+  };
+
+  const response = await requestJira(`/rest/api/3/issue/${issueId}`, {
+    method: 'PUT',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(bodyData)
+  });
+
+  return response;
+}
+
+/**
+ * Changes story point estimate of given issue
+ *
+ * [Details](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-put)
+ * about used API call.
+ * @param issueId is string
+ * @param newEstimate is integer positive number, can be null
+ */
+export const changeIssueStoryPointEstimate = async(issueId, newEstimate) => {
+  const estimateFieldId = (await getIssueFieldByUntranslatedName("Story point estimate")).id;
+
+  const bodyData = {
+    fields: {
+
+    }
+  };
+  bodyData.fields[`${estimateFieldId}`] = newEstimate;
 
   const response = await requestJira(`/rest/api/3/issue/${issueId}`, {
     method: 'PUT',

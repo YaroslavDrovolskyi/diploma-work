@@ -1,15 +1,23 @@
 import {
-  changeIssueParent, changeIssueSummaryDescription,
-  createSubtask, createUserStory,
+  changeIssueParent,
+  changeIssuePriority, changeIssueStoryPointEstimate,
+  changeIssueSummaryDescription,
+  createSubtask,
+  createUserStory,
   deleteIssue,
   fetchAllBoardsForProject,
+  fetchAllIssueFields,
+  fetchAllNotDoneStoriesTasksForBoardBacklog,
+  fetchAllPrioritiesForProject,
   fetchAllSubtasksForIssueForBoard,
-  fetchIssueNewApi
+  fetchIssueNewApi,
+  getIssueFieldByUntranslatedName
 } from "../requests/template_requests";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import {convertJiraWikiMarkupToPlainText, isEmpty, replaceNewlines, convertPlainTextToADF, checkFieldsValidity} from "../requests/helpers.js";
 
 export default function Home(){
+//  const [issuesFromBacklog, setIssuesFromBacklog] = useState(null);
 
 
   const loadData = async() => {
@@ -72,12 +80,50 @@ export default function Home(){
     console.log(`Response: ${response.status} ${response.statusText}`);
 
      */
+
+
+
+
+
+
+
+
+
+    /*
+    const priorities = await fetchAllPrioritiesForProject("10000");
+    console.log(JSON.stringify(priorities));
+     */
+
+
+//    await changeIssuePriority("10078", "5");
+//    await changeIssuePriority("10079", "5");
+
+    await changeIssueStoryPointEstimate("10078", 50);
+    await changeIssueStoryPointEstimate("10079", 100);
+    await changeIssueStoryPointEstimate("10002", null);
+
+    /*
+    const issuesFromBacklog = await fetchAllNotDoneStoriesTasksForBoardBacklog("1");
+    console.log(JSON.stringify(issuesFromBacklog));
+
+
+     */
+
+/*
+    const fields = await fetchAllIssueFields();
+    console.log(JSON.stringify(fields));
+
+    const field = await getIssueFieldByUntranslatedName("Story point estimate");
+    console.log(JSON.stringify(field));
+    console.log(field.id);
+
+ */
   };
 
 //  const adf = convertPlainTextToADF("1 2 \n3 \n 4 5\n6");
 //  console.log(JSON.stringify(adf));
 
-  testHandleGeminiAnswer();
+//  testHandleGeminiAnswer();
 
   useEffect(() => {
     loadData().then(r => console.log('loadData() finished'));
@@ -192,18 +238,18 @@ export default function Home(){
 
  */
 
-
+/*
   return(
     <DisplayRefinementFixAdviceComponent selectedIssue={selectedIssue} answer={answerFix}/>
   );
 
+ */
 
-  /*
+
+
   return(
     <DisplayRefinementNoActionAdviceComponent selectedIssue={selectedIssue}/>
-  )
-
-   */
+  );
 }
 
 function DisplayRefinementSplitAdviceComponent({selectedIssue, answer}) {
