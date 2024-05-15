@@ -7,6 +7,8 @@ import GenerateSubtasksPage from "./pages/GenerateSubtasksPage";
 import Page2 from "./pages/Page2";
 import SelectIssuesForSprintPage from "./pages/SelectIssuesForSprintPage";
 import RefinementPage from "./pages/RefinementPage";
+import PrioritizeIssuesPage from "./pages/PrioritizeIssuesPage";
+import EstimateIssuesPage from "./pages/EstimateIssuesPage";
 
 
 /**
@@ -65,6 +67,8 @@ function App() {
               <Route path="/generate-subtasks" element={<GenerateSubtasksPage />}/>
               <Route path="/refinement" element={<RefinementPage />}/>
               <Route path="/select-for-sprint" element={<SelectIssuesForSprintPage />}/>
+              <Route path="/prioritize-issues" element={<PrioritizeIssuesPage />}/>
+              <Route path="/estimate-issues" element={<EstimateIssuesPage />}/>
             </Routes>
           </Router>
         ) : (

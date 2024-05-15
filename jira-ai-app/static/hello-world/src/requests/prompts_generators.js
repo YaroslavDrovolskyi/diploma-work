@@ -132,3 +132,59 @@ export const createSelectIssuesForSprintPrompt = async (
 
   return prompt;
 }
+
+
+/**
+ * Creates prompt for prioritizing user stories.
+ * @param product is plain text without newlines
+ * @param product_vision is plain text without newlines
+ * @param priorities is JSON string with array of priorities.
+ * Priority is **`{id, name}`** object.
+ * @param user_stories is JSON string with array of issues.
+ * Issue is **`{id, summary, description, priority, estimate}`** object.
+ * @return {Promise<string>}
+ */
+export const createPrioritizeIssuesPrompt = async (
+  product,
+  product_vision,
+  priorities,
+  user_stories
+) => {
+  let file = require('../prompts_templates/prioritize-user-stories.hbs');
+  const promptTemplate = await readFile(file);
+
+  const prompt = replaceSubstrings(promptTemplate, {
+    '{{product}}': product,
+    '{{product_vision}}': product_vision,
+    '{{priorities}}': priorities,
+    '{{user_stories}}': user_stories
+  });
+
+  return prompt;
+}
+
+
+/**
+ * Creates prompt for estimating user stories.
+ * @param product is plain text without newlines
+ * @param product_vision is plain text without newlines
+ * @param user_stories is JSON string with array of issues.
+ * Issue is **`{id, summary, description, priority, estimate}`** object.
+ * @return {Promise<string>}
+ */
+export const createEstimateIssuesPrompt = async (
+  product,
+  product_vision,
+  user_stories
+) => {
+  let file = require('../prompts_templates/estimate-user-stories.hbs');
+  const promptTemplate = await readFile(file);
+
+  const prompt = replaceSubstrings(promptTemplate, {
+    '{{product}}': product,
+    '{{product_vision}}': product_vision,
+    '{{user_stories}}': user_stories
+  });
+
+  return prompt;
+}

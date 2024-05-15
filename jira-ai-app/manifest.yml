@@ -14,6 +14,10 @@ modules:
           route: '/refinement'
         - title: Select user stories / tasks for sprint
           route: '/select-for-sprint'
+        - title: Prioritize user stories / tasks
+          route: '/prioritize-issues'
+        - title: Estimate user stories / tasks
+          route: '/estimate-issues'
   function:
     - key: resolver
       handler: index.handler
