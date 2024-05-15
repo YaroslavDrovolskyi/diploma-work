@@ -13,19 +13,20 @@ import {
 import ReactDOM from "react-dom";
 import LoadingComponent from "./LoadingComponent";
 import {getValueInStorage, setValueInStorage} from "../requests/storage";
+import {generateIssueRefinementAdvice, generateIssueSelectionForSprint} from "../requests/gemini_requests";
+import ErrorComponent from "./ErrorComponent";
+import DisplayMessageComponent from "./DisplayMessageComponent";
 
 export default function SelectIssuesForSprintPage(){
   let selectedBoardId = null;
+  let sprintGoal = null;
+
+  // is ID of issue's field that contains estimation of issue.
+  // It is necessary, because can't use hardcoded ID for custom fields, because it may be different on every instance
+  let estimateFieldId = null;
 
   const onGenerationParamsSubmitted = async(event) => {
     event.preventDefault();
-
-    // display loading
-    let parent = document.getElementById('display-generation-result-component-parent');
-    ReactDOM.render(<LoadingComponent />, parent);
-
-
-    const estimateFieldId = (await getIssueFieldByUntranslatedName("Story point estimate")).id;
 
     // values of product and productVision inputs won't be 'Loading...',
     // because form submission becomes possible only after default data is downloaded
@@ -48,7 +49,7 @@ export default function SelectIssuesForSprintPage(){
 
     // get sprint goal
     const sprintGoalInput = document.getElementById("sprint-goal-input");
-    const sprintGoal = sprintGoalInput.value;
+    sprintGoal = sprintGoalInput.value;
     if(!isNonEmpty(sprintGoal)){
       alert("Sprint goal must be non-empty");
       return;
@@ -66,10 +67,28 @@ export default function SelectIssuesForSprintPage(){
     const boardSelector = document.getElementById("select-board");
     selectedBoardId = boardSelector.value;
 
+
+
+    // display loading
+    let parent = document.getElementById('display-generation-result-component-parent');
+    ReactDOM.render(<LoadingComponent />, parent);
+
+
+    // get ID of issue's "estimate" field
+    estimateFieldId = (await getIssueFieldByUntranslatedName("Story point estimate")).id;
+
     // get issues
     const issues = await fetchAllNotDoneStoriesTasksForBoardBacklog(selectedBoardId);
 
-    // format issues
+    if(issues.length === 0){
+      ReactDOM.render(<DisplayMessageComponent heading={"Backlog is empty"}
+                                               message={"Can't proceed, because backlog is empty. " +
+                                                 "If you want to continue, create some user story (or task) or select other board"}/>,
+        parent);
+      return;
+    }
+
+    // format issues (make simpler structure)
     const issuesFormatted = issues.map((i) => {
       let summary = i?.fields?.summary;
       if(summary === undefined || summary === null){
@@ -100,7 +119,6 @@ export default function SelectIssuesForSprintPage(){
     const prompt = await createSelectIssuesForSprintPrompt(product, productVision,
       sprintGoal, sprintDuration, maxIssuesNumber, JSON.stringify(issuesFormatted));
 
-    console.log(prompt); //////////////////////////////////////////////////////////////////////////////
 
 
     // save fields in storage
@@ -109,20 +127,57 @@ export default function SelectIssuesForSprintPage(){
 
 
     // render result
-    ReactDOM.render(<DisplayGenerationResult prompt={prompt} issues={issues}
-                                                      issuesFormatted={issuesFormatted}/>, parent);
+    ReactDOM.render(<DisplayGenerationResult prompt={prompt} issues={issues}/>, parent);
+  }
+
+  /**
+   * Creates sprint from selected issues
+   * @param event
+   * @return {Promise<void>}
+   */
+  const onSelectedIssuesForSprintSubmitted = async(event) => {
+    event.preventDefault();
+
+    // get selected issues IDs
+    const checkedCheckBoxes = Array.from(document.querySelectorAll(
+      '.issue-take-in-sprint-checkbox:checked'));
+    const selectedIssuesIDs = checkedCheckBoxes.map(b => b.value);
+
+    console.log(`Selected Issues IDs: ${JSON.stringify(selectedIssuesIDs)}`); /////
+
+    if(selectedIssuesIDs.length < 1){
+      alert("Please, select at least one issue");
+      return;
+    }
+
+    // get sprint name
+    const sprintNameInput = document.getElementById("sprint-name-input");
+    const sprintName = sprintNameInput.value;
+    if(!isNonEmpty(sprintName)){
+      alert("Sprint name must be non-empty");
+      return;
+    }
+
+    // display loading
+    let parent = document.getElementById('display-generation-result-component-parent');
+    ReactDOM.render(<LoadingComponent />, parent);
 
 
-    /*
-    Inputs:
-      + select-board // board.id
-      + product-input // text
-      + product-vision-input // textarea
-      + sprint-goal-input // text
-      + sprint-duration-input // number
-      + max-issues-number-input // number
+    // create sprint
+    const createdSprint = await createSprint(selectedBoardId, {
+      name: sprintName,
+      goal: sprintGoal
+    });
 
-     */
+    // move selected issues to createdSprint
+    await moveIssuesToSprint(createdSprint.id, selectedIssuesIDs);
+
+
+    // display success message
+    ReactDOM.render(<DisplayMessageComponent heading={'Sprint is created!'}
+                                             message={`Successfully created Sprint ${createdSprint.id} "${createdSprint.name}"\
+                                              with selected ${selectedIssuesIDs.length} issue(s)`}/>,
+      parent);
   }
 
 
@@ -184,6 +239,15 @@ export default function SelectIssuesForSprintPage(){
       return(
         <>
           <LoadingComponent/>
+        </>
+      )
+    }
+
+
+    if(boards.length === 0){
+      return(
+        <>
+          <DisplayMessageComponent heading={'No boards exist'} message={'No board found'}/>
         </>
       )
     }
@@ -272,10 +336,127 @@ export default function SelectIssuesForSprintPage(){
   }
 
 
-  // display-generation-result-component-parent
-  function DisplayGenerationResult({prompt, issues, issuesFormatted}){
+  /**
+   * Make request to Gemini and display result.
+   *
+   * @param prompt is prompt for Gemini
+   * @param issues is issues from backlog
+   * @return {JSX.Element}
+   * @constructor
+   */
+  function DisplayGenerationResult({prompt, issues}){
+    const [response, setResponse] = useState(null);
+
+    const loadData = async() => {
+      setResponse(await generateIssueSelectionForSprint(prompt));
+    };
+
+    useEffect(() => {
+      loadData();
+    }, []);
+
+    /* Display result */
+
+    // if answer not loaded yet
+    if(response === null){
+      return(
+        <LoadingComponent/>
+      );
+    }
+
+    console.log(`Response from Gemini: ${JSON.stringify(response)}`); /////
+
+    if(!response.ok){
+      return(
+        <ErrorComponent errorMessage={response.errorMessage}/>
+      )
+    }
+
+    // process response.answer
+    const answer = response.answer // array of {id} objects
+
+    // filter answer to get only objects with existent IDs
+    const issuesIDs = issues.map(i => i.id);
+    const selectedIssues = answer.filter(i => issuesIDs.includes(i.id)); // array of {id} objects
+    const selectedIssuesIDs = selectedIssues.map(i => i.id);
+
+    console.log(`Selected issues IDs (by Gemini): ${JSON.stringify(selectedIssuesIDs)}`); //////////////////////////////////////////////
+
+
     return(
-      <h1>HELLO!!!</h1>
-    )
+      <>
+        <h3>Create sprint (from selected issues):</h3>
+        <form name="form-apply-selected-issues-for-sprint" onSubmit={onSelectedIssuesForSprintSubmitted}>
+          <div className={"form-group container mb-3"}>
+            <div className="row">
+              <div className="col">
+
+                {/* Display issues, and check selected ones by Gemini */}
+                {selectedIssuesIDs.length > 0 ? (
+                  <>
+                    <p className={"mb-0"}>Issues, selected by Gemini, is marked (green background) and checked.</p>
+                  </>
+                ) : (
+                  <p className={"mb-0"}>Gemini didn't select any issue.</p>
+                )}
+                <p>You can check/uncheck any issue, but at least one should be checked to create sprint</p>
+
+                {/* Issue tile */}
+                {issues.map((issue) => (
+                  <div className={"row mb-3 border border-2 rounded"}>
+
+                    {/* Column for checkbox */}
+                    {selectedIssuesIDs.includes(issue.id) ? (
+                      <div className="col-1 d-flex flex-row justify-content-center align-items-center" style={{'background-color': '#ccffcc'}}>
+                        <input className={"form-check-input issue-take-in-sprint-checkbox"} type="checkbox"
+                               value={`${issue.id}`} defaultChecked/>
+                      </div>
+                    ) : (
+                      <div className="col-1 d-flex flex-row justify-content-center align-items-center">
+                        <input className={"form-check-input issue-take-in-sprint-checkbox"} type="checkbox"
+                               value={`${issue.id}`}/>
+                      </div>
+                    )}
+
+                    {/* Column for issue data */}
+                    <div className="col">
+                      <h4>{issue.key}</h4>
+                      <p className={"mb-0"}><b>ID:</b> {issue.id}</p>
+                      <p className={"mb-0"}><b>Summary:</b> {issue.fields.summary}</p>
+                      <p className={"mb-0"}><b>Type:</b> {issue.fields.issuetype.name}</p>
+                      <p className={"mb-0"}><b>Status:</b> {issue.fields.status.name}</p>
+                      {issue.fields.description !== undefined && issue.fields.description != null &&
+                        <p className={"mb-0"}><b>Description:</b> {
+                          convertJiraWikiMarkupToPlainText(issue.fields.description)
+                        }</p>
+                      }
+                      <p className={"mb-0"}><b>Priority:</b> {issue.fields.priority.name}</p>
+                      {issue.fields[`${estimateFieldId}`] !== undefined && issue.fields[`${estimateFieldId}`] !== null && (
+                        <p className={"mb-0"}><b>Estimation:</b> {issue.fields[`${estimateFieldId}`]} story point(s)</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Sprint name input */}
+                <div className={"row mb-1"}>
+                  <label htmlFor="sprint-name-input" className="col-2 text-end">Sprint name:</label>
+                  <input type="text" className="form-control col mb-2" id="sprint-name-input"/>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Submit */}
+            <div className={"row justify-content-center mt-2 mb-4"}>
+              <div className="col-2 text-center">
+                <input type="submit" value={"Create sprint!"} className={"btn btn-success form-control"}/>
+              </div>
+            </div>
+
+          </div>
+        </form>
+      </>
+    );
   }
 }

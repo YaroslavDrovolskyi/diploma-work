@@ -524,15 +524,16 @@ export default function RefinementPage(){
       );
     }
 
+    console.log(`Response from Gemini: ${JSON.stringify(response)}`); /////
+
     if(!response.ok){
       return(
         <ErrorComponent errorMessage={response.errorMessage}/>
       )
     }
 
-    console.log(`Response from Gemini: ${JSON.stringify(response)}`); //////////////////////////////////////////////////////////
 
-
+    
     /* Process response.answer */
 
     if(response.answer.action === "SPLIT"){
