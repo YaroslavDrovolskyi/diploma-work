@@ -12,8 +12,8 @@ modules:
           route: '/generate-subtasks'
         - title: Refine User story / Task
           route: '/refinement'
-        - title: Page 3
-          route: '/page-3'
+        - title: Select user stories / tasks for sprint
+          route: '/select-for-sprint'
   function:
     - key: resolver
       handler: index.handler
@@ -36,6 +36,7 @@ permissions:
     - storage:app
     - write:jira-work
     - manage:jira-configuration
+    - write:sprint:jira-software
   external:
     fetch:
       client:

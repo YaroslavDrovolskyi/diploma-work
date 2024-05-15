@@ -598,3 +598,60 @@ export const changeIssueStoryPointEstimate = async(issueId, newEstimate) => {
 
   return response;
 }
+
+
+/**
+ * Creates Sprint with given params.
+ *
+ * [Details](https://developer.atlassian.com/cloud/jira/software/rest/api-group-sprint/#api-rest-agile-1-0-sprint-post)
+ * about used API call, parameters and returned object
+ * @param sprint is **`{name, goal}`** object, that will be created.
+ * @param originBoardId is board ID.
+ * @return {Promise<void>} **`{id, name, goal, state, originBoardId, startDate, endDate}`** object for created Sprint.
+ */
+export const createSprint = async(originBoardId, sprint) => {
+  const bodyData = {
+    name: sprint.name,
+    goal: sprint.goal,
+    originBoardId: originBoardId
+  };
+
+  const response = await requestJira(`/rest/agile/1.0/sprint`, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(bodyData)
+  });
+
+  return(await response.json());
+}
+
+/**
+ * Moves issues to sprint.
+ *
+ * Works either moving from backlog, either from other sprint.
+ *
+ * [Details](https://developer.atlassian.com/cloud/jira/software/rest/api-group-sprint/#api-rest-agile-1-0-sprint-sprintid-issue-post)
+ * about used API call, parameters and returned object
+ * @param sprintId is ID of sprint
+ * @param issuesIds is array of IDs of issues that need to be moved to given sprint. Each ID is string.
+ * *Example*: `["10078", "10002"]`.
+ * @return {Promise<void>} **`{status, statusText}`** response object.
+ */
+export const moveIssuesToSprint = async(sprintId, issuesIds) => {
+  const bodyData = {
+    "issues": issuesIds
+  };
+
+  const response = await requestJira(`/rest/agile/1.0/sprint/${sprintId}/issue`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(bodyData)
+  });
+
+  return response;
+}

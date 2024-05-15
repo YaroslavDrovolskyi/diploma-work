@@ -5,10 +5,17 @@ import {Route, Router, Routes} from "react-router";
 import Home from "./pages/Home";
 import GenerateSubtasksPage from "./pages/GenerateSubtasksPage";
 import Page2 from "./pages/Page2";
-import Page3 from "./pages/Page3";
+import SelectIssuesForSprintPage from "./pages/SelectIssuesForSprintPage";
 import RefinementPage from "./pages/RefinementPage";
 
-// page that defines routing
+
+/**
+ *
+ *
+ * It is page that defines routing
+ *
+ *
+*/
 
 
 
@@ -57,7 +64,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/generate-subtasks" element={<GenerateSubtasksPage />}/>
               <Route path="/refinement" element={<RefinementPage />}/>
-              <Route path="/page-3" element={<Page3 />}/>
+              <Route path="/select-for-sprint" element={<SelectIssuesForSprintPage />}/>
             </Routes>
           </Router>
         ) : (
