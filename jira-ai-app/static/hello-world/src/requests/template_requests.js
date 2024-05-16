@@ -111,7 +111,7 @@ export const fetchAllBoardsForProject = async() => {
  * For each issue these fields are fetched: id, key, issuetype, status, summary, description
  *
  * [Details](https://developer.atlassian.com/cloud/jira/software/rest/api-group-board/#api-rest-agile-1-0-board-boardid-issue-get)
- * aboutI API call, its parameters and returned values
+ * about API call, its parameters and returned values
  * @param boardId
  * @return {Promise<any[]>} array of issues
  * (issue is **`{id, key, fields: {issuetype, status, summary, description, subtasks}}`** object)
@@ -152,7 +152,7 @@ export const fetchAllNotDoneStoriesTasksForBoard = async (boardId) => {
  * For each subtask these fields are fetched: `id`, `key`.
  *
  * [Details](https://developer.atlassian.com/cloud/jira/software/rest/api-group-board/#api-rest-agile-1-0-board-boardid-issue-get)
- * aboutI API call, its parameters and returned values
+ * about API call, its parameters and returned values
  * @param boardId
  * @param issueId
  * @return {Promise<any[]>} array of subtasks
@@ -193,7 +193,7 @@ export const fetchAllSubtasksForIssueForBoard = async (boardId, issueId) => {
  * For each issue these fields are fetched: id, key, issuetype, status, summary, description
  *
  * [Details](https://developer.atlassian.com/cloud/jira/software/rest/api-group-board/#api-rest-agile-1-0-board-boardid-backlog-get)
- * aboutI API call, its parameters and returned values
+ * about API call, its parameters and returned values
  * @param boardId
  * @return {Promise<any[]>} array of issues
  * (issue is **`{id, key, fields: {issuetype, status, summary, description, priority,`
@@ -213,6 +213,90 @@ export const fetchAllNotDoneStoriesTasksForBoardBacklog = async (boardId) => {
   while(continueFetching){
     const resp = await requestJira(
       `/rest/agile/1.0/board/${boardId}/backlog?startAt=${startAt}&jql=status!=Done+and+(type=Story+or+type=Task) \
+    &fields=id,key,issuetype,status,summary,description,subtasks,priority,${estimateFieldId}&maxResults=50`);
+    let response = await resp.json();
+
+    // add fetched issues to map
+    for (const issue of response.issues){
+      issues.set(issue.id, issue); // if issue is already present in map, the more recent version of it is set
+      startAt++;
+    }
+
+    if(response.issues.length === 0){ // instead of, we can take response.isLast into account
+      continueFetching = false;
+    }
+  }
+
+  return Array.from(issues.values());
+}
+
+
+/**
+ * Fetches all not-CLOSED (active, future) sprints for a given board ID.
+ *
+ * [Details](https://developer.atlassian.com/cloud/jira/software/rest/api-group-board/#api-rest-agile-1-0-board-boardid-sprint-get)
+ * about API call, its parameters and returned values
+ * @param boardId is ID of board (string or number)
+ * @return {Promise<any[]>} array of sprints
+ * (sprint is **`{id, name, state, goal, originBoardId, ...}`** object)
+ */
+export const fetchAllNotClosedSprintsForBoard = async (boardId) => {
+  // map is necessary for not duplicating objects if some of them was received more than once
+  // due to paging issues (for example shift because of object insertion on server)
+  const sprints = new Map(); // map of pairs [sprintId, sprint]
+
+  let continueFetching = true;
+  let startAt = 0;
+
+  // make request while fetched page is not empty
+  while(continueFetching){
+    const resp = await requestJira(
+      `/rest/agile/1.0/board/${boardId}/sprint?startAt=${startAt} \
+    &maxResults=50&state=active,future`);
+    let response = await resp.json();
+
+    // add fetched sprints to map
+    for (const sprint of response.values){
+      sprints.set(sprint.id, sprint); // if issue is already present in map, the more recent version of it is set
+      startAt++;
+    }
+
+    if(response.values.length === 0){ // instead of, we can take response.isLast into account
+      continueFetching = false;
+    }
+  }
+
+  return Array.from(sprints.values());
+}
+
+
+
+/**
+ * Returns all not-DONE User stories and Tasks for given sprint.
+ *
+ * [Details](https://developer.atlassian.com/cloud/jira/software/rest/api-group-sprint/#api-rest-agile-1-0-sprint-sprintid-issue-get)
+ * about API call, its parameters and returned values.
+ * @param sprintId
+ * @return {Promise<any[]>} array of issues
+ * (issue is **`{id, key, fields: {issuetype, status, summary, description, priority,`
+ * *getIssueFieldByUntranslatedName("Story point estimate").id* `}}`** object)
+ */
+export const fetchAllNotDoneStoriesTasksForSprint = async (sprintId) => {
+  // map is necessary for not duplicating objects if some of them was received more than once
+  // due to paging issues (for example shift because of object insertion on server)
+  const issues = new Map(); // map of pairs [issuedId, issue]
+
+  // fetch ID of necessary field, because it is custom field (so IDs on different instances are different)
+  const estimateFieldId = (await getIssueFieldByUntranslatedName("Story point estimate")).id;
+
+
+  let continueFetching = true;
+  let startAt = 0;
+
+  // make request while fetched page is not empty
+  while(continueFetching){
+    const resp = await requestJira(
+      `/rest/agile/1.0/sprint/${sprintId}/issue?startAt=${startAt}&jql=status!=Done+and+(type=Story+or+type=Task) \
     &fields=id,key,issuetype,status,summary,description,subtasks,priority,${estimateFieldId}&maxResults=50`);
     let response = await resp.json();
 
