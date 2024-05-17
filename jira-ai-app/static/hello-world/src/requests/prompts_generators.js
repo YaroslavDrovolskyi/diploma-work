@@ -141,7 +141,7 @@ export const createSelectIssuesForSprintPrompt = async (
  * @param priorities is JSON string with array of priorities.
  * Priority is **`{id, name}`** object.
  * @param user_stories is JSON string with array of issues.
- * Issue is **`{id, summary, description, priority, estimate}`** object.
+ * Issue is **`{id, key, summary, description, priority, estimate}`** object.
  * @return {Promise<string>}
  */
 export const createPrioritizeIssuesPrompt = async (

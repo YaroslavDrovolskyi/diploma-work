@@ -232,7 +232,7 @@ export const fetchAllNotDoneStoriesTasksForBoardBacklog = async (boardId) => {
 
 
 /**
- * Fetches all not-CLOSED (active, future) sprints for a given board ID.
+ * Fetches all not-CLOSED (active, future) sprints for a given board.
  *
  * [Details](https://developer.atlassian.com/cloud/jira/software/rest/api-group-board/#api-rest-agile-1-0-board-boardid-sprint-get)
  * about API call, its parameters and returned values
@@ -323,7 +323,10 @@ because it does not allow to get list of data.
  */
 
 
-
+/**
+ * Fetches current project.
+ * @return {Promise<any>} project. Project is **`{id, key, name, description, issueTypes, projectTypeKey, ...}`** object.
+ */
 export const fetchCurrentProject = async() => {
   const context = await view.getContext();
   const projectId = context.extension.project.id;
@@ -408,7 +411,7 @@ export const fetchIssueTypeIdForProject = async(issueTypeName, projectId) => {
  * [Details](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-priorities/#api-rest-api-3-priority-search-get)
  * about API call used
  * @param projectId is string
- * @return {Promise<any[]>} array of priorities. Priority is `{id, name, description, isDefault, ...}` object.
+ * @return {Promise<any[]>} array of priorities. Priority is **`{id, name, description, isDefault, ...}`** object.
  */
 export const fetchAllPrioritiesForProject = async(projectId) => {
   // map is necessary for not duplicating objects if some of them was received more than once
