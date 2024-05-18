@@ -381,7 +381,7 @@ export const generateIssuesEstimates = async(prompt) => {
     // filter array to return only valid items
     let necessaryFields = [
       {field: "userStoryId", type: "string"}, // in .hbs, ID is as string (and also in JSON returned by Jira API)
-      {field: "estimate", type: "string"} // in .hbs, ID is as string
+      {field: "estimate", type: "number"}
     ];
     let validItems = [];
     for (const arrItem of obj){
