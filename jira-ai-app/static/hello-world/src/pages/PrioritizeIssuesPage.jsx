@@ -212,6 +212,8 @@ export default function PrioritizeIssuesPage(){
   /* The basis of page */
   return(
     <div className={"p-2 pb-5"}>
+      <h1 className={"text-center"}>Prioritize user stories / tasks</h1>
+
       <SelectBoardComponent/>
 
       <div id={"generation-parameters-inputs-component-parent"}>

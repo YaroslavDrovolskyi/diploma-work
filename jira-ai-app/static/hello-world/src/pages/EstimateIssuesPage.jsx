@@ -210,6 +210,8 @@ export default function EstimateIssuesPage() {
   /* The basis of page */
   return(
     <div className={"p-2 pb-5"}>
+      <h1 className={"text-center"}>Estimate user stories / tasks</h1>
+
       <SelectBoardComponent/>
 
       <div id={"generation-parameters-inputs-component-parent"}>
@@ -585,7 +587,7 @@ export default function EstimateIssuesPage() {
             {/* Submit */}
             <div className={"row justify-content-center mt-2 mb-4"}>
               <div className="col-2 text-center">
-                <input type="submit" value={"Apply priorities!"} className={"btn btn-success form-control"}/>
+                <input type="submit" value={"Apply estimates!"} className={"btn btn-success form-control"}/>
               </div>
             </div>
 

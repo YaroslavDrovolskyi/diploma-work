@@ -187,6 +187,8 @@ export default function SelectIssuesForSprintPage(){
   // The basis of whole page
   return(
     <div className={"p-2 pb-5"}>
+      <h1 className={"text-center"}>Select user stories / tasks for sprint</h1>
+
       <GenerationParametersInputsComponent/>
 
       <div id={"display-generation-result-component-parent"}>

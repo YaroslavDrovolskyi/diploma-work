@@ -215,6 +215,8 @@ export default function GenerateSubtasksPage(){
   // The basis of whole page
   return(
     <div className={"p-2 pb-5"}>
+      <h1 className={"text-center"}>Generate subtasks</h1>
+
       {boards == null ? (
         <LoadingComponent/>
       ) : (

@@ -288,6 +288,8 @@ export default function RefinementPage(){
   // The basis of whole page
   return(
     <div className={"p-2 pb-5"}>
+      <h1 className={"text-center"}>Refine User story / Task</h1>
+
       <SelectBoardComponent/>
 
       <div id={"generation-parameters-inputs-component-parent"}>
