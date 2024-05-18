@@ -8,7 +8,7 @@ import {
   fetchAllPrioritiesForProject,
   fetchCurrentProject,
   getIssueFieldByUntranslatedName
-} from "../requests/template_requests";
+} from "../requests/jira_requests";
 import {createEstimateIssuesPrompt, createPrioritizeIssuesPrompt} from "../requests/prompts_generators";
 import {useEffect, useState} from "react";
 import {requestJira} from "@forge/bridge";
@@ -550,7 +550,8 @@ export default function PrioritizeIssuesPage(){
                         <div className={"col-4"}>
                           <p className={"text-center"}><b>Generated priority</b></p>
                           <p className={"text-center"}>
-                            {findGeneratedPriorityForIssue(issue.id, generatedPrioritiesAssignations)?.name}
+                            {findGeneratedPriorityForIssue(issue.id, generatedPrioritiesAssignations) !== null ?
+                              findGeneratedPriorityForIssue(issue.id, generatedPrioritiesAssignations).name : "—"}
                           </p>
                         </div>
 

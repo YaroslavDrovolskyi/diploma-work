@@ -13,7 +13,7 @@ import {
   fetchAllNotDoneStoriesTasksForBoard,
   fetchCurrentProject,
   fetchIssue
-} from "../requests/template_requests";
+} from "../requests/jira_requests";
 import {getValueInStorage, setValueInStorage} from "../requests/storage";
 import {invoke, view} from "@forge/bridge";
 import {convertJiraWikiMarkupToPlainText, isEmpty} from "../requests/helpers.js";

@@ -4,7 +4,7 @@ import {
   fetchAllBoardsForProject,
   fetchAllNotDoneStoriesTasksForBoard, fetchAllSubtasksForIssueForBoard,
   fetchCurrentProject, fetchIssue
-} from "../requests/template_requests";
+} from "../requests/jira_requests";
 import {useEffect, useState} from "react";
 import LoadingComponent from "./LoadingComponent";
 import ReactDOM from "react-dom";

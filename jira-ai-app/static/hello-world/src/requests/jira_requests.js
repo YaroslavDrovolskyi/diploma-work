@@ -2,7 +2,7 @@ import {requestJira, view} from "@forge/bridge";
 import {replaceNewlines, convertPlainTextToADF} from "../requests/helpers.js";
 
 
-///////////////////////////////// This file can be named 'api_requests'
+
 
 
 

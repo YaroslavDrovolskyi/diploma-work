@@ -9,7 +9,7 @@ import {
   fetchCurrentProject,
   getIssueFieldByUntranslatedName,
   moveIssuesToSprint
-} from "../requests/template_requests";
+} from "../requests/jira_requests";
 import ReactDOM from "react-dom";
 import LoadingComponent from "./LoadingComponent";
 import {getValueInStorage, setValueInStorage} from "../requests/storage";

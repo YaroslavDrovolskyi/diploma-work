@@ -12,7 +12,7 @@ import {
   fetchAllSubtasksForIssueForBoard,
   fetchIssueNewApi,
   getIssueFieldByUntranslatedName
-} from "../requests/template_requests";
+} from "../requests/jira_requests";
 import {useEffect, useState} from "react";
 import {convertJiraWikiMarkupToPlainText, isEmpty, replaceNewlines, convertPlainTextToADF, checkFieldsValidity} from "../requests/helpers.js";
 

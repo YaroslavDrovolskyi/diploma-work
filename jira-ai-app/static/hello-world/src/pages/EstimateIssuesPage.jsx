@@ -7,7 +7,7 @@ import {
   fetchAllPrioritiesForProject,
   fetchCurrentProject,
   getIssueFieldByUntranslatedName
-} from "../requests/template_requests";
+} from "../requests/jira_requests";
 import LoadingComponent from "./LoadingComponent";
 import DisplayMessageComponent from "./DisplayMessageComponent";
 import {useEffect, useState} from "react";
