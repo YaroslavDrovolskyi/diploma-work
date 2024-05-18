@@ -4,14 +4,14 @@ import {
   fetchAllBoardsForProject,
   fetchAllNotDoneStoriesTasksForBoard, fetchAllSubtasksForIssueForBoard,
   fetchCurrentProject, fetchIssue
-} from "../requests/jira_requests";
+} from "../logic/jira_requests";
 import {useEffect, useState} from "react";
 import LoadingComponent from "./LoadingComponent";
 import ReactDOM from "react-dom";
-import {getValueInStorage, setValueInStorage} from "../requests/storage";
-import {convertJiraWikiMarkupToPlainText, isEmpty, replaceNewlines, isNonEmpty} from "../requests/helpers.js";
-import {createGenerateSubtasksPrompt, createIssueRefinementPrompt} from "../requests/prompts_generators";
-import {generateIssueRefinementAdvice, generateSubtasksForIssue} from "../requests/gemini_requests";
+import {getValueInStorage, setValueInStorage} from "../logic/storage";
+import {convertJiraWikiMarkupToPlainText, isEmpty, replaceNewlines, isNonEmpty} from "../logic/helpers.js";
+import {createGenerateSubtasksPrompt, createIssueRefinementPrompt} from "../logic/prompts_generators";
+import {generateIssueRefinementAdvice, generateSubtasksForIssue} from "../logic/gemini_requests";
 import ErrorComponent from "./ErrorComponent";
 
 export default function RefinementPage(){

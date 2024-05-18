@@ -1,5 +1,5 @@
 import {requestJira, view} from "@forge/bridge";
-import {replaceNewlines, convertPlainTextToADF} from "../requests/helpers.js";
+import {replaceNewlines, convertPlainTextToADF} from ".//helpers.js";
 
 
 

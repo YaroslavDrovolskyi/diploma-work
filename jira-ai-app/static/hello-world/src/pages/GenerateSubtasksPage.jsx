@@ -13,16 +13,15 @@ import {
   fetchAllNotDoneStoriesTasksForBoard,
   fetchCurrentProject,
   fetchIssue
-} from "../requests/jira_requests";
-import {getValueInStorage, setValueInStorage} from "../requests/storage";
+} from "../logic/jira_requests";
+import {getValueInStorage, setValueInStorage} from "../logic/storage";
 import {invoke, view} from "@forge/bridge";
-import {convertJiraWikiMarkupToPlainText, isEmpty} from "../requests/helpers.js";
+import {convertJiraWikiMarkupToPlainText, isEmpty} from "../logic/helpers.js";
 import ReactDOM from "react-dom";
 import LoadingComponent from "./LoadingComponent";
-import {createGenerateSubtasksPrompt, readFile, replaceSubstrings} from "../requests/prompts_generators";
-import {replaceNewlines} from '../requests/helpers.js';
-import file from "./some.hbs";
-import {generateSubtasksForIssue} from "../requests/gemini_requests";
+import {createGenerateSubtasksPrompt, readFile, replaceSubstrings} from "../logic/prompts_generators";
+import {replaceNewlines} from '../logic/helpers.js';
+import {generateSubtasksForIssue} from "../logic/gemini_requests";
 import ErrorComponent from "./ErrorComponent";
 
 /**

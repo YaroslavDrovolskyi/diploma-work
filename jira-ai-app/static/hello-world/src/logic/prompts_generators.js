@@ -1,4 +1,4 @@
-import file from "../prompts_templates/generate-tasks.hbs";
+
 
 /**
  * Reads text of file.

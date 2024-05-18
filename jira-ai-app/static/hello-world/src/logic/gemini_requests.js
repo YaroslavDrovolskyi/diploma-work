@@ -1,6 +1,6 @@
 
 
-import {checkFieldsValidity} from '../requests/helpers.js';
+import {checkFieldsValidity} from './/helpers.js';
 
 // also NEED write generateSubtasksForIssue() method.
 

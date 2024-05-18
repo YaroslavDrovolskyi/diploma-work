@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import {invoke, view} from '@forge/bridge';
-import {getGeminiAnswerJs, getGeminiResponse, getIssue} from "./requests/helpers";
+import {getGeminiAnswerJs, getGeminiResponse, getIssue} from "./logic/helpers";
 import {Route, Router, Routes} from "react-router";
 import Home from "./pages/Home";
 import GenerateSubtasksPage from "./pages/GenerateSubtasksPage";
-import Page2 from "./pages/Page2";
 import SelectIssuesForSprintPage from "./pages/SelectIssuesForSprintPage";
 import RefinementPage from "./pages/RefinementPage";
 import PrioritizeIssuesPage from "./pages/PrioritizeIssuesPage";

@@ -12,9 +12,9 @@ import {
   fetchAllSubtasksForIssueForBoard,
   fetchIssueNewApi,
   getIssueFieldByUntranslatedName
-} from "../requests/jira_requests";
+} from "../logic/jira_requests";
 import {useEffect, useState} from "react";
-import {convertJiraWikiMarkupToPlainText, isEmpty, replaceNewlines, convertPlainTextToADF, checkFieldsValidity} from "../requests/helpers.js";
+import {convertJiraWikiMarkupToPlainText, isEmpty, replaceNewlines, convertPlainTextToADF, checkFieldsValidity} from "../logic/helpers.js";
 
 export default function Home(){
 //  const [issuesFromBacklog, setIssuesFromBacklog] = useState(null);

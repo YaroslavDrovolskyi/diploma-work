@@ -8,16 +8,16 @@ import {
   fetchAllPrioritiesForProject,
   fetchCurrentProject,
   getIssueFieldByUntranslatedName
-} from "../requests/jira_requests";
-import {createEstimateIssuesPrompt, createPrioritizeIssuesPrompt} from "../requests/prompts_generators";
+} from "../logic/jira_requests";
+import {createEstimateIssuesPrompt, createPrioritizeIssuesPrompt} from "../logic/prompts_generators";
 import {useEffect, useState} from "react";
 import {requestJira} from "@forge/bridge";
 import LoadingComponent from "./LoadingComponent";
 import ReactDOM from "react-dom";
 import DisplayMessageComponent from "./DisplayMessageComponent";
-import {getValueInStorage, setValueInStorage} from "../requests/storage";
-import {convertJiraWikiMarkupToPlainText, isEmpty, replaceNewlines, isNonEmpty} from "../requests/helpers.js";
-import {generateIssuesPriorities} from "../requests/gemini_requests";
+import {getValueInStorage, setValueInStorage} from "../logic/storage";
+import {convertJiraWikiMarkupToPlainText, isEmpty, replaceNewlines, isNonEmpty} from "../logic/helpers.js";
+import {generateIssuesPriorities} from "../logic/gemini_requests";
 import ErrorComponent from "./ErrorComponent";
 
 // General flow: choose board, then choose either one of its sprints either backlog

@@ -7,15 +7,15 @@ import {
   fetchAllPrioritiesForProject,
   fetchCurrentProject,
   getIssueFieldByUntranslatedName
-} from "../requests/jira_requests";
+} from "../logic/jira_requests";
 import LoadingComponent from "./LoadingComponent";
 import DisplayMessageComponent from "./DisplayMessageComponent";
 import {useEffect, useState} from "react";
-import {convertJiraWikiMarkupToPlainText, isEmpty, replaceNewlines, isNonEmpty} from "../requests/helpers.js";
+import {convertJiraWikiMarkupToPlainText, isEmpty, replaceNewlines, isNonEmpty} from "../logic/helpers.js";
 import ReactDOM from "react-dom";
-import {getValueInStorage, setValueInStorage} from "../requests/storage";
-import {createEstimateIssuesPrompt, createPrioritizeIssuesPrompt} from "../requests/prompts_generators";
-import {generateIssuesEstimates} from "../requests/gemini_requests";
+import {getValueInStorage, setValueInStorage} from "../logic/storage";
+import {createEstimateIssuesPrompt, createPrioritizeIssuesPrompt} from "../logic/prompts_generators";
+import {generateIssuesEstimates} from "../logic/gemini_requests";
 import ErrorComponent from "./ErrorComponent";
 
 

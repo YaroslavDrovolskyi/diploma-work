@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
-import {createSelectIssuesForSprintPrompt} from "../requests/prompts_generators";
-import {convertJiraWikiMarkupToPlainText, isEmpty, replaceNewlines, isNonEmpty} from "../requests/helpers.js";
+import {createSelectIssuesForSprintPrompt} from "../logic/prompts_generators";
+import {convertJiraWikiMarkupToPlainText, isEmpty, replaceNewlines, isNonEmpty} from "../logic/helpers.js";
 import {
   createSprint,
   fetchAllBoardsForProject,
@@ -9,11 +9,11 @@ import {
   fetchCurrentProject,
   getIssueFieldByUntranslatedName,
   moveIssuesToSprint
-} from "../requests/jira_requests";
+} from "../logic/jira_requests";
 import ReactDOM from "react-dom";
 import LoadingComponent from "./LoadingComponent";
-import {getValueInStorage, setValueInStorage} from "../requests/storage";
-import {generateIssueRefinementAdvice, generateIssueSelectionForSprint} from "../requests/gemini_requests";
+import {getValueInStorage, setValueInStorage} from "../logic/storage";
+import {generateIssueRefinementAdvice, generateIssueSelectionForSprint} from "../logic/gemini_requests";
 import ErrorComponent from "./ErrorComponent";
 import DisplayMessageComponent from "./DisplayMessageComponent";
 
