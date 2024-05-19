@@ -105,7 +105,7 @@ export const createIssueRefinementPrompt = async (
  * @param product_vision is plain text without newlines
  * @param sprint_goal is plain text without newlines
  * @param sprint_weeks_count is integer number
- * @param user_stories_count is integer number
+ * @param team_members_number is integer number
  * @param user_stories is JSON array of issues.
  * Issue is **`{id, summary, description, priority, storyPointsEstimation}`** object.
  * @return {Promise<string>}
@@ -115,7 +115,7 @@ export const createSelectIssuesForSprintPrompt = async (
   product_vision,
   sprint_goal,
   sprint_weeks_count,
-  user_stories_count,
+  team_members_number,
   user_stories
 ) => {
   let file = require('../prompts_templates/what-take-in-sprint.hbs');
@@ -126,7 +126,7 @@ export const createSelectIssuesForSprintPrompt = async (
     '{{product_vision}}': product_vision,
     '{{sprint_goal}}': sprint_goal,
     '{{sprint_weeks_count}}': sprint_weeks_count,
-    '{{user_stories_count}}': user_stories_count,
+    '{{team_members_number}}': team_members_number,
     '{{user_stories}}': user_stories
   });
 

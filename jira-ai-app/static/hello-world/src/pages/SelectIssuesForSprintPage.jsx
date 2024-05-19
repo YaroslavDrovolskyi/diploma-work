@@ -60,8 +60,8 @@ export default function SelectIssuesForSprintPage(){
     const sprintDuration = sprintDurationInput.value;
 
     // get max issues number
-    const maxIssuesNumberInput= document.getElementById("max-issues-number-input");
-    const maxIssuesNumber = maxIssuesNumberInput.value;
+    const teamMembersNumberInput= document.getElementById("team-members-number-input");
+    const teamMembersNumber = teamMembersNumberInput.value;
 
     // get board ID
     const boardSelector = document.getElementById("select-board");
@@ -117,7 +117,7 @@ export default function SelectIssuesForSprintPage(){
 
     // generate prompt
     const prompt = await createSelectIssuesForSprintPrompt(product, productVision,
-      sprintGoal, sprintDuration, maxIssuesNumber, JSON.stringify(issuesFormatted));
+      sprintGoal, sprintDuration, teamMembersNumber, JSON.stringify(issuesFormatted));
 
 
 
@@ -316,8 +316,8 @@ export default function SelectIssuesForSprintPage(){
 
             {/* Max numer of issues to take in sprint */}
             <div className={"row mb-1"}>
-              <label htmlFor="max-issues-number-input" className="col-2 text-end">Max number of issues to take in sprint:</label>
-              <input id="max-issues-number-input" type="number" min={1} step={1} defaultValue={1} className="form-control col"/>
+              <label htmlFor="team-members-number-input" className="col-2 text-end">Number of team members are going to take part in sprint:</label>
+              <input id="team-members-number-input" type="number" min={1} step={1} defaultValue={1} className="form-control col"/>
             </div>
 
 
