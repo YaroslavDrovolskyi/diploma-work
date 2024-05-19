@@ -132,10 +132,7 @@ export default function EstimateIssuesPage() {
         description: description,
         priority: i.fields.priority.name
       };
-
-      if(i.fields[`${estimateFieldId}`] !== null){
-        issue.estimate = i.fields[`${estimateFieldId}`];
-      }
+      
 
       return issue;
     });

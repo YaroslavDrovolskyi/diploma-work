@@ -128,8 +128,7 @@ export default function PrioritizeIssuesPage(){
         id: i.id,
         key: i.key,
         summary: summary,
-        description: description,
-        priority: i.fields.priority.name
+        description: description
       };
 
       if(i.fields[`${estimateFieldId}`] !== null){
